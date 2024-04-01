@@ -145,6 +145,8 @@ while cap.isOpened():
 
         # Perform object detection using YOLOv5
         results = MODEL(frame)
+        #results.print()
+        #results.show()
 
         # Count the number of detected cars in each region
         TOTAL_CARS = 0  # Total number of detected cars
@@ -182,8 +184,12 @@ while cap.isOpened():
                             TOTAL_CARS += 1
                             COUNTED_BOXES.append(box)
                         break  # Break once a match is found to avoid double counting
-
+        # Calculate the number of free parking spots
+        TOTAL_SPOTS = 5  # Total number of parking spots
+        FREE_SPOTS = TOTAL_SPOTS - TOTAL_CARS
+        print(f"Total parking spots: {TOTAL_SPOTS}")
         print(f"Total detected cars: {TOTAL_CARS}")
+        print(f"Free parking spots: {FREE_SPOTS}")                
     time.sleep(delay)
     # Break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -9,7 +9,7 @@ is_drawing = False
 
 # Load and resize the image
 image_path = "./source/jerenAutot.jpg"
-new_size = (1920, 1080)  # New size (width, height)
+new_size = (1917, 1045)  # New size (width, height)
 image = cv2.imread(image_path)
 image = cv2.resize(image, new_size)
 clone = image.copy()
