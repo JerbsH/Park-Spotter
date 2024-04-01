@@ -43,13 +43,10 @@ def save_points():
     with open("carSpots.pkl", "wb") as file:
         pickle.dump(saved_points, file)
  
-#image = cv2.imread("./source/jerenAutot.jpg")
-#clone = image.copy()
- 
 for point_group in saved_points:
     cv2.polylines(image, [np.array(point_group)], True, (0, 255, 0), 2)
  
-cv2.namedWindow("image")
+cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
 cv2.setMouseCallback("image", click_and_draw)
  
 while True:
