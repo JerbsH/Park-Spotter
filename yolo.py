@@ -136,8 +136,8 @@ while cap.isOpened():
     cv2.imshow('Video Feed', frame)
 
     # Resize the window
-    WINDOW_WIDTH = 1600
-    WINDOW_HEIGHT = 800
+    WINDOW_WIDTH = 1917
+    WINDOW_HEIGHT = 1045
     cv2.resizeWindow('Video Feed', WINDOW_WIDTH, WINDOW_HEIGHT)
     # Process frame every 30 seconds in real-time
     if time.time() - last_frame_time >= FRAME_INTERVAL:
