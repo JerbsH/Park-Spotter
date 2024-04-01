@@ -1,0 +1,7 @@
+numpy
+opencv_contrib_python
+flask
+opencv-python
+torch>=1.7.0
+Pillow
+matplotlib
