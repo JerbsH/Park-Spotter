@@ -2,13 +2,18 @@ import cv2
 import pickle
 import numpy as np
  
- 
 # Initialize the list of points and boolean indicating
 # whether drawing is being performed or not
 current_points = []
 is_drawing = False
-image = cv2.imread("./source/parkingfront.jpg")
- 
+
+# Load and resize the image
+image_path = "./source/jerenAutot.jpg"
+new_size = (1920, 1080)  # New size (width, height)
+image = cv2.imread(image_path)
+image = cv2.resize(image, new_size)
+clone = image.copy()
+
 # Use a context manager for file operations
 try:
     with open("carSpots.pkl", "rb") as file:
@@ -38,8 +43,8 @@ def save_points():
     with open("carSpots.pkl", "wb") as file:
         pickle.dump(saved_points, file)
  
-image = cv2.imread("./source/parkingfront.jpg")
-clone = image.copy()
+#image = cv2.imread("./source/jerenAutot.jpg")
+#clone = image.copy()
  
 for point_group in saved_points:
     cv2.polylines(image, [np.array(point_group)], True, (0, 255, 0), 2)
