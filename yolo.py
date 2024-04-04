@@ -69,12 +69,12 @@ except Exception as e:
     sys.exit(1)
 
 # Create a resizable window
-cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
 
 # Resize the window
 WINDOW_WIDTH = 1917
 WINDOW_HEIGHT = 1045
-cv2.resizeWindow('Video Feed', WINDOW_WIDTH, WINDOW_HEIGHT)
+#cv2.resizeWindow('Video Feed', WINDOW_WIDTH, WINDOW_HEIGHT)
 
 # Calculate the scaling factors
 scale_x = WINDOW_WIDTH / image_width
@@ -90,14 +90,14 @@ while cap.isOpened():
             break
 
         # Resize the frame to match the size of the image
-        frame = cv2.resize(frame, (WINDOW_WIDTH, WINDOW_HEIGHT))
+        #frame = cv2.resize(frame, (WINDOW_WIDTH, WINDOW_HEIGHT))
         start_time = time.time()  # Start time
 
         # Draw each region on the frame
-        for point_group in scaled_points:
-            cv2.polylines(frame, [point_group.astype(int)], True, (0, 255, 0), 2)
+        #for point_group in scaled_points:
+            #cv2.polylines(frame, [point_group.astype(int)], True, (0, 255, 0), 2)
         # Display the video feed
-        cv2.imshow('Video Feed', frame)
+        #cv2.imshow('Video Feed', frame)
         # Process frame every 5 seconds in real-time
         if time.time() - last_frame_time >= FRAME_INTERVAL:
             last_frame_time = time.time()
@@ -174,4 +174,4 @@ while cap.isOpened():
         break
 
 cap.release()
-cv2.destroyAllWindows()
+#cv2.destroyAllWindows()
