@@ -32,14 +32,14 @@ last_frame_time = time.time()
 
 
 # Create a resizable window
-cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
+#cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
 
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
 
-    cv2.imshow('Video Feed', frame)
+    #cv2.imshow('Video Feed', frame)
     if time.time() - last_frame_time >= FRAME_INTERVAL:
         last_frame_time = time.time()
 
@@ -64,6 +64,6 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-results.show()
+#results.show()
 cap.release()
-cv2.destroyAllWindows()
+#cv2.destroyAllWindows()
