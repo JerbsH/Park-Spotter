@@ -32,8 +32,11 @@ CLONE = IMAGE.copy()
 
 # Use a context manager for file operations
 try:
-    with open("carSpots.pkl", "rb") as file_in:
-        SAVED_POINTS = pickle.load(file_in)
+    with open("carSpots2.pkl", "rb") as file_in:
+        try:
+            SAVED_POINTS = pickle.load(file_in)
+        except EOFError:
+            SAVED_POINTS = []
 except FileNotFoundError:
     SAVED_POINTS = []
 
@@ -55,7 +58,7 @@ def click_and_draw(event, x, y, flags, param):
         CURRENT_POINTS.append((x, y))
         IS_DRAWING = False
         cv2.polylines(IMAGE, [np.array(CURRENT_POINTS)], True, (0, 255, 0), 2)
-        #cv2.imshow("image", IMAGE)
+        cv2.imshow("image", IMAGE)
         SAVED_POINTS.append(list(CURRENT_POINTS))
 
 def save_points():
@@ -63,7 +66,7 @@ def save_points():
     Function to save the drawn points to a file.
     """
     try:
-        with open("carSpots.pkl", "wb") as file_out:
+        with open("carSpots2.pkl", "wb") as file_out:
             pickle.dump(SAVED_POINTS, file_out)
     except pickle.PickleError as pickle_error:
         print(f"Error saving points: {pickle_error}")
@@ -71,11 +74,11 @@ def save_points():
 for point_group in SAVED_POINTS:
     cv2.polylines(IMAGE, [np.array(point_group)], True, (0, 255, 0), 2)
 
-#cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
-#cv2.setMouseCallback("image", click_and_draw)
+cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
+cv2.setMouseCallback("image", click_and_draw)
 
 while True:
-    #cv2.imshow("image", IMAGE)
+    cv2.imshow("image", IMAGE)
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord("r"):
@@ -88,4 +91,4 @@ while True:
         save_points()
         break
 
-#cv2.destroyAllWindows()
+cv2.destroyAllWindows()

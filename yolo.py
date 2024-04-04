@@ -18,10 +18,10 @@ except Exception as e:
 
 try:
     # Load the saved points
-    with open("carSpots.pkl", "rb") as file:
+    with open("carSpots2.pkl", "rb") as file:
         POINTS = pickle.load(file)
 except FileNotFoundError:
-    print("File 'carSpots.pkl' not found.", file=sys.stderr)
+    print("File 'carSpots2.pkl' not found.", file=sys.stderr)
     sys.exit(1)
 except Exception as e:
     print(f"Error loading points: {e}", file=sys.stderr)

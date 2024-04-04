@@ -21,7 +21,7 @@ IMAGE_NP = np.array(IMAGE)
 RESULTS = MODEL(IMAGE_NP)
 
 # Load the saved points
-with open("carSpots.pkl", "rb") as file:
+with open("carSpots2.pkl", "rb") as file:
     POINTS = pickle.load(file)
 
 # Convert the points to a numpy array and calculate centroids
