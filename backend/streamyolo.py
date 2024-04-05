@@ -1,6 +1,7 @@
 """
 This module is used for detecting vehicles in a video stream using YOLOv5 model.
 """
+import sys
 import os
 import time
 import logging
@@ -8,7 +9,10 @@ import pickle
 import cv2
 import torch
 import numpy as np
+sys.path.insert(0, './backend')
+
 from dotenv import load_dotenv
+from database import fetch_available_spots, store_free_spots
 
 load_dotenv()
 
@@ -113,6 +117,11 @@ while cap.isOpened():
 
         TOTAL_SPOTS = 8  # Total number of parking spots
         FREE_SPOTS = TOTAL_SPOTS - TOTAL_CARS
+        # store free spots to database
+        # In your main script
+        store_free_spots(FREE_SPOTS)
+        available_spots = fetch_available_spots()
+        logging.info(f"Available spots: {available_spots}")
         logging.info("Total parking spots: %s", TOTAL_SPOTS)
         logging.info("Total detected cars: %s", TOTAL_CARS)
         logging.info("Free parking spots: %s", FREE_SPOTS)

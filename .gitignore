@@ -6,3 +6,6 @@ yolov5s.pt
 
 # env
 .env
+
+# database
+database.py
