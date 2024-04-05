@@ -12,7 +12,7 @@ import numpy as np
 MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
 
 # Load the saved image with the drawn regions
-IMAGE = Image.open("./source/parkingfront.jpg")
+IMAGE = Image.open("./backend/source/parkingfront.jpg")
 
 # Convert the image to a numpy array
 IMAGE_NP = np.array(IMAGE)
@@ -21,7 +21,7 @@ IMAGE_NP = np.array(IMAGE)
 RESULTS = MODEL(IMAGE_NP)
 
 # Load the saved points
-with open("carSpots2.pkl", "rb") as file:
+with open("./backend/carSpots2.pkl", "rb") as file:
     POINTS = pickle.load(file)
 
 # Convert the points to a numpy array and calculate centroids

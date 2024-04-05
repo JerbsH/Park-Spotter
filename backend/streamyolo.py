@@ -39,7 +39,7 @@ logging.info(
 logging.info("Frame rate: %s", cap.get(cv2.CAP_PROP_FPS))
 
 try:
-    with open("carSpots2.pkl", "rb") as file:
+    with open("./backend/carSpots2.pkl", "rb") as file:
         POINTS = pickle.load(file)
 except FileNotFoundError:
     logging.error("File 'carSpots2.pkl' not found.")
