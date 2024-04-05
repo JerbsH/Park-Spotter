@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet} from 'react-native';
 
 const App = () => {
   const [spots, setSpots] = useState(0);
 
   useEffect(() => {
     fetch('http://localhost:8000/free_spots')
-      .then(response => response.json())
-      .then(data => setSpots(data.free_spots))
-      .catch(error => console.error(error));
+      .then((response) => response.json())
+      .then((data) => setSpots(data.free_spots))
+      .catch((error) => console.error(error));
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Parking Spot Availability at Karaportti 2:</Text>
+      <Text style={styles.title}>
+        Parking Spot Availability at Karaportti 2:
+      </Text>
       <Text style={styles.spots}>{spots}</Text>
       <Text style={styles.subtitle}>Available Spots</Text>
     </View>
