@@ -13,7 +13,7 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Parking Spot Availability</Text>
+      <Text style={styles.title}>Parking Spot Availability at Karaportti 2:</Text>
       <Text style={styles.spots}>{spots}</Text>
       <Text style={styles.subtitle}>Available Spots</Text>
     </View>

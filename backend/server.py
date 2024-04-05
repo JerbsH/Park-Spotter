@@ -3,8 +3,8 @@ import threading
 import cv2
 import numpy as np
 from flask import Flask, jsonify
-from opencv import click_and_draw
-from yolo import FREE_SPOTS  # Import the FREE_SPOTS variable from yolo.py
+from backend.opencv import click_and_draw
+from backend.yolo import FREE_SPOTS  # Import the FREE_SPOTS variable from yolo.py
 
 app = Flask(__name__)
 
