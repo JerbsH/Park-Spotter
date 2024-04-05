@@ -121,7 +121,7 @@ while cap.isOpened():
         # In your main script
         store_free_spots(FREE_SPOTS)
         spots = fetch_available_spots()
-        logging.info("Available spots: %s", spots[0])
+        #logging.info("Available spots: %s", spots[0])
         logging.info("Total parking spots: %s", TOTAL_SPOTS)
         logging.info("Total detected cars: %s", TOTAL_CARS)
         logging.info("Free parking spots: %s", FREE_SPOTS)
