@@ -18,7 +18,7 @@ except Exception as e:
 
 try:
     # Load the saved points
-    with open("carSpots2.pkl", "rb") as file:
+    with open("./backend/carSpots2.pkl", "rb") as file:
         POINTS = pickle.load(file)
 except FileNotFoundError:
     print("File 'carSpots2.pkl' not found.", file=sys.stderr)
@@ -42,7 +42,7 @@ VEHICLE_CLASSES = [2, 3, 7] # Car, motorcycle, truck
 
 try:
     # Open the video file
-    VIDEO_PATH = './source/jerenAutot.mp4'
+    VIDEO_PATH = './backend/source/jerenAutot.mp4'
     cap = cv2.VideoCapture(VIDEO_PATH)
     if not cap.isOpened():
         raise ValueError("Could not open video file.")
@@ -60,7 +60,7 @@ last_frame_time = time.time()
 
 try:
     # Load the image and get its size
-    image = cv2.imread("./source/jerenAutot.jpg")
+    image = cv2.imread("./backend/source/jerenAutot.jpg")
     if image is None:
         raise ValueError("Could not load image.")
     image_height, image_width = image.shape[:2]

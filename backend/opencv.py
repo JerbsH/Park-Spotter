@@ -13,7 +13,7 @@ CURRENT_POINTS = []
 IS_DRAWING = False
 
 # Load and resize the image
-IMAGE_PATH = "./source/jerenKoti.png"
+IMAGE_PATH = "./backend/source/jerenKoti.png"
 #NEW_SIZE = (1917, 1045)  # New size (width, height)
 
 try:
@@ -32,7 +32,7 @@ CLONE = IMAGE.copy()
 
 # Use a context manager for file operations
 try:
-    with open("carSpots2.pkl", "rb") as file_in:
+    with open("./backend/carSpots2.pkl", "rb") as file_in:
         try:
             SAVED_POINTS = pickle.load(file_in)
         except EOFError:
@@ -66,7 +66,7 @@ def save_points():
     Function to save the drawn points to a file.
     """
     try:
-        with open("carSpots2.pkl", "wb") as file_out:
+        with open("./backend/carSpots2.pkl", "wb") as file_out:
             pickle.dump(SAVED_POINTS, file_out)
     except pickle.PickleError as pickle_error:
         print(f"Error saving points: {pickle_error}")
