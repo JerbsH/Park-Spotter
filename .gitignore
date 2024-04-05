@@ -4,8 +4,10 @@ yolov5l.pt
 yolov5m.pt
 yolov5s.pt
 
-# env
+#Env
 .env
-
-# database
+#Database
 database.py
+
+#node_modules
+node_modules/
