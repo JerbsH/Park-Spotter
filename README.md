@@ -9,9 +9,11 @@ https://www.python.org/downloads/
 ```
 git clone https://github.com/JerbsH/Park-Spotter-Backend.git
 ```
-### Install packages
+### Starting the application
+Use the correct starting script based on your server operating system.
+#### Unix based system
 ```
-python -m pip install -r requirements.txt
+bash startappUnix.sh
 ```
 
 
