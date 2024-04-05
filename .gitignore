@@ -6,8 +6,6 @@ yolov5s.pt
 
 # env
 .env
-#Database
-database.py
 
 # dependencies
 node_modules/
