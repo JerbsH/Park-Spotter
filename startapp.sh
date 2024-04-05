@@ -1,2 +1,2 @@
-pip install -r requirements.txt;
-python3 streamyolo.py;
+pip install -r ./backend/requirements.txt;
+python3 ./backend/streamyolo.py;
