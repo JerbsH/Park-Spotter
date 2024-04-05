@@ -9,5 +9,11 @@ sudo apt-get install python3-pip -y
 # Install required python packages
 pip install -r ./backend/requirements.txt
 
-# Run the application
-python3 ./backend/streamyolo.py
+# Run the Flask server in the background
+yes | python flaskserver.py &
+
+# Start the Expo app in the background
+yes | npm start &
+
+# Run the Flask server in the background
+python3 ./backend/streamyolo.py &

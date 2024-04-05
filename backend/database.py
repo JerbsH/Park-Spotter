@@ -3,18 +3,26 @@ and fetches all the rows from a table."""
 
 import os
 import mysql.connector
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+
 def connect_to_db():
-    cnx = mysql.connector.connect(
-        host=os.getenv('DB_HOST'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASS'),
-        database=os.getenv('DB_NAME')
-    )
-    return cnx
+    try:
+        cnx = mysql.connector.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASS'),
+            database=os.getenv('DB_NAME')
+        )
+        logging.info('Connected to the database successfully')
+        return cnx
+    except Exception as e:
+        logging.error('Error connecting to the database %s', e)
+
 
 
 def fetch_available_spots():
