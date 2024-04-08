@@ -5,7 +5,6 @@ This module serves as a Flask server that exposes an endpoint to fetch the numbe
 from flask import Flask, jsonify
 import logging
 
-# Ensure that the database module and fetch_available_spots function are correctly defined and accessible
 try:
     from backend.database import fetch_available_spots
 except ImportError:

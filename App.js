@@ -11,7 +11,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchSpots = () => {
-      fetch('http://<iphere>:8000/free_spots')
+      fetch('http://<iphere>/free_spots')
         .then((response) => response.json())
         .then((data) => {
           console.log('Data fetched successfully', data);
@@ -22,6 +22,8 @@ const App = () => {
         });
     };
     fetchSpots(); // Fetch immediately on component mount
+    const timerId = setInterval(fetchSpots, 10000);
+    return () => clearInterval(timerId); // Clean up the timer
   }, []);
 
   return (

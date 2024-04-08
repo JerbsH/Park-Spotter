@@ -82,7 +82,7 @@ def boxes_overlap(box1, box2):
     return iou > 0.5  # Overlap if IoU > 0.5
 
 
-FRAME_INTERVAL = 5
+FRAME_INTERVAL = 10
 last_frame_time = time.time()
 
 # Create a resizable window
