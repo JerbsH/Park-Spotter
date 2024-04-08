@@ -6,7 +6,7 @@ from flask import Flask, jsonify
 import logging
 
 try:
-    from backend.database import fetch_available_spots
+    from database import fetch_available_spots
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
