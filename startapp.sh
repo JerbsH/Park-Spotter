@@ -16,4 +16,4 @@ yes | python flaskserver.py &
 yes | npm start &
 
 # Run the Flask server in the background
-python3 ./backend/streamyolo.py &
+python ./backend/streamyolo.py &

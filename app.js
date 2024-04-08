@@ -1,14 +1,27 @@
+// React Native code
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import {LogBox} from 'react-native';
+
+LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+LogBox.ignoreAllLogs(); // Ignore all log notifications
 
 const App = () => {
   const [spots, setSpots] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:8000/free_spots')
-      .then((response) => response.json())
-      .then((data) => setSpots(data.free_spots))
-      .catch((error) => console.error(error));
+    const fetchSpots = () => {
+      fetch('http://<iphere>:8000/free_spots')
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Data fetched successfully', data);
+          setSpots(data.free_spots);
+        })
+        .catch((error) => {
+          console.error('Error fetching data', error);
+        });
+    };
+    fetchSpots(); // Fetch immediately on component mount
   }, []);
 
   return (
