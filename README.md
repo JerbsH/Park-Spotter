@@ -8,7 +8,7 @@ Version need to be >= 3.9.x
 
 ### Clone repository
 ```
-git clone https://github.com/JerbsH/Park-Spotter-Backend.git
+git clone https://github.com/JerbsH/Park-Spotter.git
 ```
 ### Starting the application
 Use the correct starting script based on your server operating system.
