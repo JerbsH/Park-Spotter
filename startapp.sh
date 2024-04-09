@@ -12,8 +12,5 @@ pip install -r ./backend/requirements.txt
 # Run the Flask server in the background
 yes | python ./backend/flaskserver.py &
 
-# Start the Expo app in the background
-yes | npm start &
-
 # Run the Flask server in the background
 python3 ./backend/streamyolo.py &
