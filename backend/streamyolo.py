@@ -95,15 +95,15 @@ def main():
     last_frame_time = time.time()
 
     # Create a resizable window
-    cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
+    #cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        for point_group in POINTS_NP:
-            cv2.polylines(frame, [point_group.astype(int)], True, (0, 255, 0), 2)
-        cv2.imshow('Video Feed', frame)
+        #for point_group in POINTS_NP:
+            #cv2.polylines(frame, [point_group.astype(int)], True, (0, 255, 0), 2)
+        #cv2.imshow('Video Feed', frame)
 
         if time.time() - last_frame_time >= frame_interval:
             last_frame_time = time.time()
@@ -137,9 +137,9 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    results.show()
+    #results.show()
     cap.release()
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
