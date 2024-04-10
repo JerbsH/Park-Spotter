@@ -58,7 +58,7 @@ def click_and_draw(event, x, y, flags, param):
         CURRENT_POINTS.append((x, y))
         IS_DRAWING = False
         cv2.polylines(IMAGE, [np.array(CURRENT_POINTS)], True, (0, 255, 0), 2)
-        cv2.imshow("image", IMAGE)
+        #cv2.imshow("image", IMAGE)
         SAVED_POINTS.append(list(CURRENT_POINTS))
 
 def save_points():
@@ -74,11 +74,11 @@ def save_points():
 for point_group in SAVED_POINTS:
     cv2.polylines(IMAGE, [np.array(point_group)], True, (0, 255, 0), 2)
 
-cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
+#cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
 cv2.setMouseCallback("image", click_and_draw)
 
 while True:
-    cv2.imshow("image", IMAGE)
+    #cv2.imshow("image", IMAGE)
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord("r"):
@@ -91,4 +91,4 @@ while True:
         save_points()
         break
 
-cv2.destroyAllWindows()
+#cv2.destroyAllWindows()
