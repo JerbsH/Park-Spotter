@@ -26,3 +26,5 @@ jobs:
     - name: Test with unittest
       run: |
         python3 run_tests.py
+      env:
+        SECURE_URL: ${{ secrets.SECURE_URL }}
