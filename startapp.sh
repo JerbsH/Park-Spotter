@@ -10,7 +10,7 @@ sudo apt-get install python3-pip -y
 pip install -r ./backend/requirements.txt
 
 # Run the Flask server in the background
-yes | python ./backend/flaskserver.py &
+yes | python3 ./backend/flaskserver.py &
 
 # Run the Flask server in the background
 python3 ./backend/streamyolo.py &

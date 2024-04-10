@@ -3,6 +3,7 @@ yolov5x.pt
 yolov5l.pt
 yolov5m.pt
 yolov5s.pt
+yolov5x6.pt
 
 # env
 .env
