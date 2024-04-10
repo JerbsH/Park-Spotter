@@ -74,7 +74,7 @@ for *box, conf, cls in RESULTS.xyxy[0]:
 
 # Print and display the results
 RESULTS.print()  # print results to console
-RESULTS.show()  # display results
+#RESULTS.show()  # display results
 
 # Calculate the number of free parking spots
 TOTAL_SPOTS = 28  # Total number of parking spots
