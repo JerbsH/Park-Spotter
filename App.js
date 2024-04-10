@@ -11,7 +11,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchSpots = () => {
-      fetch('<iphere>:8000/free_spots')
+      fetch('4.245.216.85:8000/free_spots')
         .then((response) => response.json())
         .then((data) => {
           console.log('Data fetched successfully', data);
