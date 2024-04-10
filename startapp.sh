@@ -11,6 +11,9 @@ sudo apt-get install nodejs -y
 sudo apt-get install npm -y
 sudo npm install pm2 -g
 
+# Get newest version
+git pull origin main
+
 # Install required python packages
 pip install -r ./backend/requirements.txt
 
