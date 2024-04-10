@@ -2,7 +2,7 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {LogBox} from 'react-native';
-
+// testikommentttia
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); // Ignore all log notifications
 
