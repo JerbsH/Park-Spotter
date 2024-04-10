@@ -11,7 +11,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchSpots = () => {
-      fetch('4.245.216.85:8000/free_spots')
+      fetch(`${process.env.REACT_APP_API_URL}`)
         .then((response) => response.json())
         .then((data) => {
           console.log('Data fetched successfully', data);
