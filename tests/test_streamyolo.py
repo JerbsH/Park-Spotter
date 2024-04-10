@@ -1,13 +1,11 @@
-"""
-This module contains unit tests for the boxes_overlap function in the streamyolo module.
-"""
-
 import os
 import sys
 import unittest
+from unittest.mock import Mock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.modules['database'] = Mock()
 
-from backend.streamyolo import boxes_overlap  # Import placed at the top of the module
+from backend.streamyolo import boxes_overlap
 
 class TestStreamYolo(unittest.TestCase):
     """
