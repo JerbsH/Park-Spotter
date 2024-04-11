@@ -18,10 +18,10 @@ git pull origin main
 pip install -r ./backend/requirements.txt
 
 # Run the Flask server in the background
-yes | python ./backend/flaskserver.py &
+yes | python3 ./backend/flaskserver.py &
 
 # Run the Flask server in the background
-#pm2 start ./backend/streamyolo.py --name=parkspotter --interpreter python3
-python ./backend/streamyolo.py &
+pm2 start ./backend/streamyolo.py --name=parkspotter --interpreter python3
+
 
 
