@@ -4,7 +4,7 @@ sudo apt-get update -y
 sudo apt-get upgrade -y
 
 # Install pip
-sudo apt-get install python3-pip -y
+sudo apt-get install python-pip -y
 
 # Install pm2
 sudo apt-get install nodejs -y
@@ -18,8 +18,10 @@ git pull origin main
 pip install -r ./backend/requirements.txt
 
 # Run the Flask server in the background
-yes | python3 ./backend/flaskserver.py &
+yes | python ./backend/flaskserver.py &
 
 # Run the Flask server in the background
-pm2 start ./backend/streamyolo.py --name=parkspotter --interpreter python3
+#pm2 start ./backend/streamyolo.py --name=parkspotter --interpreter python3
+python ./backend/streamyolo.py &
+
 

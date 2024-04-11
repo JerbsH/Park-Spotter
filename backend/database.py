@@ -46,6 +46,28 @@ def fetch_available_spots():
     print("No available spots found")
     return 0
 
+def fetch_available_handicap_spots():
+    """Fetches the available handicap parking spots from the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return 0
+
+    try:
+        cursor = cnx.cursor()
+        query = "SELECT HANDICAPSPOTS FROM AVAILABLE_SPOTS"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is not None:
+            print(f"Fetched {result[0]} available handicap spots")  # Debugging print statement
+            return result[0]
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+    print("No available handicap spots found")
+    return 0
+
 def store_free_spots(free_spots):
     """Stores the number of free parking spots in the database."""
     cnx = connect_to_db()
@@ -55,6 +77,22 @@ def store_free_spots(free_spots):
     try:
         cursor = cnx.cursor()
         query = "UPDATE AVAILABLE_SPOTS SET PARKSPOTS = %s WHERE id = %s"
+        cursor.execute(query, (free_spots, 1))  # Provide the id parameter
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+def store_free_handicap_spots(free_spots):
+    """Stores the number of free handicap parking spots in the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return
+
+    try:
+        cursor = cnx.cursor()
+        query = "UPDATE AVAILABLE_SPOTS SET HANDICAPSPOTS = %s WHERE id = %s"
         cursor.execute(query, (free_spots, 1))  # Provide the id parameter
         cnx.commit()
     except mysql.connector.Error as err:
