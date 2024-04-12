@@ -11,16 +11,15 @@ import numpy as np
 # whether drawing is being performed or not
 CURRENT_POINTS = []
 IS_DRAWING = False
+IS_HANDICAP = False
 
 # Load and resize the image
 IMAGE_PATH = "./backend/source/jerenKoti.png"
-#NEW_SIZE = (1917, 1045)  # New size (width, height)
 
 try:
     IMAGE = cv2.imread(IMAGE_PATH)
     if IMAGE is None:
         raise FileNotFoundError(f"Image not found at {IMAGE_PATH}")
-    #IMAGE = cv2.resize(IMAGE, NEW_SIZE)
 except FileNotFoundError as e:
     print(f"Error loading image: {e}")
     sys.exit(1)
@@ -45,21 +44,27 @@ def click_and_draw(event, x, y, flags, param):
     Function to handle mouse events. Draws on the image on mouse drag and saves the points.
     """
     # grab references to the global variables
-    global CURRENT_POINTS, IS_DRAWING, IMAGE, SAVED_POINTS
+    global CURRENT_POINTS, IS_DRAWING, IMAGE, SAVED_POINTS, IS_HANDICAP
+
+    color = (255, 0, 0) if IS_HANDICAP else (0, 255, 0)
 
     if event == cv2.EVENT_LBUTTONDOWN:
         CURRENT_POINTS = [(x, y)]
         IS_DRAWING = True
+    elif event == cv2.EVENT_RBUTTONDOWN:
+        CURRENT_POINTS = [(x, y)]
+        IS_DRAWING = True
+        IS_HANDICAP = not IS_HANDICAP
     elif event == cv2.EVENT_MOUSEMOVE:
         if IS_DRAWING:
-            cv2.circle(IMAGE, (x, y), 3, (0, 255, 0), -1)
+            cv2.circle(IMAGE, (x, y), 3, color, -1)
             CURRENT_POINTS.append((x, y))
-    elif event == cv2.EVENT_LBUTTONUP:
+    elif event == cv2.EVENT_LBUTTONUP or event == cv2.EVENT_RBUTTONUP:
         CURRENT_POINTS.append((x, y))
         IS_DRAWING = False
-        cv2.polylines(IMAGE, [np.array(CURRENT_POINTS)], True, (0, 255, 0), 2)
+        cv2.polylines(IMAGE, [np.array(CURRENT_POINTS)], True, color, 2)
         cv2.imshow("image", IMAGE)
-        SAVED_POINTS.append(list(CURRENT_POINTS))
+        SAVED_POINTS.append((list(CURRENT_POINTS), IS_HANDICAP))
 
 def save_points():
     """
@@ -71,8 +76,11 @@ def save_points():
     except pickle.PickleError as pickle_error:
         print(f"Error saving points: {pickle_error}")
 
-for point_group in SAVED_POINTS:
-    cv2.polylines(IMAGE, [np.array(point_group)], True, (0, 255, 0), 2)
+for point in SAVED_POINTS:
+    if len(point) == 2:
+        point_group, is_handicap = point
+        color = (255, 0, 0) if is_handicap else (0, 255, 0)
+        cv2.polylines(IMAGE, [np.array(point_group)], True, color, 2)
 
 cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
 cv2.setMouseCallback("image", click_and_draw)
@@ -85,8 +93,9 @@ while True:
         SAVED_POINTS.clear()
         save_points()
         IMAGE = CLONE.copy()
-        for point_group in SAVED_POINTS:
-            cv2.polylines(IMAGE, [np.array(point_group)], True, (0, 255, 0), 2)
+        for point_group, is_handicap in SAVED_POINTS:
+            color = (255, 0, 0) if is_handicap else (0, 255, 0)
+            cv2.polylines(IMAGE, [np.array(point_group)], True, color, 2)
     elif key == ord("c"):
         save_points()
         break

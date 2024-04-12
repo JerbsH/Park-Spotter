@@ -1,3 +1,7 @@
+"""
+Module for detecting parking spots using YOLOv5
+"""
+
 import sys
 import time
 import pickle

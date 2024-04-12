@@ -9,10 +9,10 @@ import cv2
 import numpy as np
 
 # Load the YOLOv5 model
-MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
+MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x6', pretrained=True)
 
 # Load the saved image with the drawn regions
-IMAGE = Image.open("./backend/source/parkingfront.jpg")
+IMAGE = Image.open("./backend/source/parkkis2.jpg")
 
 # Convert the image to a numpy array
 IMAGE_NP = np.array(IMAGE)
@@ -74,10 +74,10 @@ for *box, conf, cls in RESULTS.xyxy[0]:
 
 # Print and display the results
 RESULTS.print()  # print results to console
-RESULTS.show()  # display results
+#RESULTS.show()  # display results
 
 # Calculate the number of free parking spots
-TOTAL_SPOTS = 24  # Total number of parking spots
+TOTAL_SPOTS = 28  # Total number of parking spots
 FREE_SPOTS = TOTAL_SPOTS - TOTAL_CARS
 print(f"Total parking spots: {TOTAL_SPOTS}")
 print(f"Total detected cars: {TOTAL_CARS}")

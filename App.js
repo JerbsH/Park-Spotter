@@ -8,11 +8,15 @@ LogBox.ignoreAllLogs(); // Ignore all log notifications
 
 const App = () => {
   const [spots, setSpots] = useState(0);
-
+  const [handicapSpots, setHandicapSpots] = useState(0);
+  // testikooodi
   useEffect(() => {
     const fetchSpots = () => {
-      fetch('http://<iphere>/free_spots')
-        .then((response) => response.json())
+      fetch(`${process.env.REACT_PARKINGSPOTS_URL}`)
+        .then((response) => response.text()) // Get response text
+        .then((text) => {
+          return JSON.parse(text); // Parse the text as JSON
+        })
         .then((data) => {
           console.log('Data fetched successfully', data);
           setSpots(data.free_spots);
@@ -20,7 +24,22 @@ const App = () => {
         .catch((error) => {
           console.error('Error fetching data', error);
         });
+
+      fetch(`${process.env.REACT_HANDICAP_PARKINGSPOTS_URL}`)
+        .then((response) => response.text()) // Get response text
+        .then((text) => {
+          console.log('Raw response:', text);
+          return JSON.parse(text); // Parse the text as JSON
+        })
+        .then((data) => {
+          console.log('Data fetched successfully', data);
+          setHandicapSpots(data.free_handicap_spots);
+        })
+        .catch((error) => {
+          console.error('Error fetching data', error);
+        });
     };
+
     fetchSpots(); // Fetch immediately on component mount
     const timerId = setInterval(fetchSpots, 10000);
     return () => clearInterval(timerId); // Clean up the timer
@@ -33,6 +52,8 @@ const App = () => {
       </Text>
       <Text style={styles.spots}>{spots}</Text>
       <Text style={styles.subtitle}>Available Spots</Text>
+      <Text style={styles.spots}>{handicapSpots}</Text>
+      <Text style={styles.subtitle}>Available Handicap Spots</Text>
     </View>
   );
 };
