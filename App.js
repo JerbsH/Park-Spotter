@@ -9,7 +9,7 @@ LogBox.ignoreAllLogs(); // Ignore all log notifications
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
-
+  // testikooodi
   useEffect(() => {
     const fetchSpots = () => {
       fetch(`${process.env.REACT_PARKINGSPOTS_URL}`)
