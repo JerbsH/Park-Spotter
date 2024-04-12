@@ -59,6 +59,42 @@ class FlaskServerTestCase(unittest.TestCase):
             self.assertEqual(response.status_code, 500)
             self.assertIn('error', response.get_json())
 
+    def test_get_free_handicap_spots_negative(self):
+        """
+        Test getting free handicap spots with a negative number.
+        """
+        with patch('backend.database.fetch_available_handicap_spots', return_value=-1):
+            response = self.app.get('/free_handicap_spots')
+            self.assertEqual(response.status_code, 500)
+
+    def test_get_free_handicap_spots_non_integer(self):
+        """
+        Test getting free handicap spots with a non-integer value.
+        """
+        with patch('backend.database.fetch_available_handicap_spots', return_value='ten'):
+            response = self.app.get('/free_handicap_spots')
+            self.assertEqual(response.status_code, 500)
+
+    def test_get_free_handicap_spots_none(self):
+        """
+        Test getting free handicap spots with a None value.
+        """
+        with patch('backend.database.fetch_available_handicap_spots', return_value=None):
+            response = self.app.get('/free_handicap_spots')
+            self.assertEqual(response.status_code, 500)
+
+    def test_get_free_handicap_spots_exception(self):
+        """
+        Test getting free handicap spots when an exception is raised.
+        """
+        with patch(
+            'backend.database.fetch_available_handicap_spots',
+            side_effect=Exception('Database error')
+        ):
+            response = self.app.get('/free_handicap_spots')
+            self.assertEqual(response.status_code, 500)
+            self.assertIn('error', response.get_json())
+
 
 if __name__ == '__main__':
     unittest.main()

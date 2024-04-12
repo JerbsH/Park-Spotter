@@ -40,6 +40,7 @@ def fetch_available_spots():
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
+        return {"error": str(err)}  # Return the error message
     finally:
         cnx.close()
 

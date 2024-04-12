@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 
 try:
-    from database import fetch_available_spots, fetch_available_handicap_spots  # Adjust the import statement
+    from database import fetch_available_spots, fetch_available_handicap_spots
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 

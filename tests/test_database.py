@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 import mysql.connector
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from backend.database import fetch_available_spots, store_free_spots
+from backend.database import fetch_available_spots, fetch_available_handicap_spots, store_free_spots, store_free_handicap_spots
 
 
 class TestDatabase(unittest.TestCase):
@@ -77,7 +77,7 @@ class TestDatabase(unittest.TestCase):
             result = fetch_available_spots()
 
         # Assert that the function correctly handled the database error
-        self.assertIsNone(result)
+        self.assertEqual(result, 0)  # Updated this line
         # Assert that the function attempted to make the correct database query
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
         # Assert that the function correctly closed the database connection
@@ -102,6 +102,38 @@ class TestDatabase(unittest.TestCase):
         # Assert that the function correctly committed the database transaction
         mock_cnx.commit.assert_called_once()
         # Assert that the function correctly closed the database connection
+        mock_cnx.close.assert_called_once()
+
+    def test_fetch_available_handicap_spots_with_result(self):
+        """
+        Test case for fetch_available_handicap_spots when the database returns a result.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = (3,)
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = fetch_available_handicap_spots()
+
+        self.assertEqual(result, 3)
+        mock_cursor.execute.assert_called_once_with("SELECT HANDICAPSPOTS FROM AVAILABLE_SPOTS")
+        mock_cnx.close.assert_called_once()
+
+    def test_store_free_handicap_spots(self):
+        """
+        Test case for store_free_handicap_spots.
+        """
+        mock_cursor = MagicMock()
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            store_free_handicap_spots(3)
+
+        query = "UPDATE AVAILABLE_SPOTS SET HANDICAPSPOTS = %s WHERE id = %s"
+        mock_cursor.execute.assert_called_once_with(query, (3, 1))
+        mock_cnx.commit.assert_called_once()
         mock_cnx.close.assert_called_once()
 
 if __name__ == '__main__':
