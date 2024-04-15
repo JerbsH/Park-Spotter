@@ -1,6 +1,8 @@
 import logging
 from flask import Flask, jsonify
 from flask_cors import CORS
+from flask import request
+
 
 try:
     from database import fetch_available_spots, fetch_available_handicap_spots
@@ -11,6 +13,15 @@ app = Flask(__name__)
 CORS(app)
 
 logging.basicConfig(level=logging.INFO)
+
+@app.route('/register', methods=['POST'])
+def register_device():
+    token = request.json.get('token')
+    if token:
+        # Save the token in your database
+        return jsonify({'status': 'success'}), 200
+    else:
+        return jsonify({'error': 'Token is missing'}), 400
 
 @app.route('/free_spots', methods=['GET'])
 def get_free_spots():
