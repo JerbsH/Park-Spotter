@@ -148,7 +148,7 @@ def main():
 
             # Calculate the number of free normal spots and free handicap spots
             total_normal_spots = 6
-            total_handicap_spots = 1
+            total_handicap_spots = 2
             free_normal_spots = total_normal_spots - total_normal_cars
             free_handicap_spots = total_handicap_spots - total_handicap_cars
             store_free_spots(free_normal_spots)

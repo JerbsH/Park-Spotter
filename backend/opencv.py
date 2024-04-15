@@ -14,7 +14,7 @@ IS_DRAWING = False
 IS_HANDICAP = False
 
 # Load and resize the image
-IMAGE_PATH = "./backend/source/kouluparkki1.jpg"
+IMAGE_PATH = "./backend/source/jerenKoti.png"
 
 try:
     IMAGE = cv2.imread(IMAGE_PATH)
