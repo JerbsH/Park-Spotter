@@ -38,4 +38,5 @@ jobs:
           cd parkspotter
           git pull origin main
           npm i
+          pm2 restart flaskserver
           pm2 restart parkspotter
