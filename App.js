@@ -11,6 +11,9 @@ const App = () => {
   const [handicapSpots, setHandicapSpots] = useState(0);
   /**
    * testausta serveriä varten
+   * ....
+   * ....
+   * ...
    */
   useEffect(() => {
     const fetchSpots = () => {
