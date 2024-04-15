@@ -9,10 +9,10 @@ import cv2
 import numpy as np
 
 # Load the YOLOv5 model
-MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x6', pretrained=True)
+MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
 
 # Load the saved image with the drawn regions
-IMAGE = Image.open("./backend/source/parkkis2.jpg")
+IMAGE = Image.open("./backend/source/kouluparkki1.jpg")
 
 # Convert the image to a numpy array
 IMAGE_NP = np.array(IMAGE)
@@ -25,7 +25,7 @@ with open("./backend/carSpots2.pkl", "rb") as file:
     POINTS = pickle.load(file)
 
 # Convert the points to a numpy array and calculate centroids
-POINTS_NP = [np.array(point_group) for point_group in POINTS]
+POINTS_NP = [np.array(point_group[0]) for point_group in POINTS]
 ANNOTATED_CENTROIDS = [
     (int(np.mean(point_group[:, 0])), int(np.mean(point_group[:, 1])))
     for point_group in POINTS_NP
@@ -77,7 +77,7 @@ RESULTS.print()  # print results to console
 #RESULTS.show()  # display results
 
 # Calculate the number of free parking spots
-TOTAL_SPOTS = 28  # Total number of parking spots
+TOTAL_SPOTS = 27  # Total number of parking spots
 FREE_SPOTS = TOTAL_SPOTS - TOTAL_CARS
 print(f"Total parking spots: {TOTAL_SPOTS}")
 print(f"Total detected cars: {TOTAL_CARS}")

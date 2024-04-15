@@ -24,7 +24,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 try:
-    MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x6', pretrained=True)
+    MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
 except IOError as e:
     logging.error("Error loading model: %s", e)
     os._exit(1)

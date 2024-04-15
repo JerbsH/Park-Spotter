@@ -14,7 +14,7 @@ IS_DRAWING = False
 IS_HANDICAP = False
 
 # Load and resize the image
-IMAGE_PATH = "./backend/source/jerenKoti.png"
+IMAGE_PATH = "./backend/source/kouluparkki1.jpg"
 
 try:
     IMAGE = cv2.imread(IMAGE_PATH)
@@ -46,20 +46,23 @@ def click_and_draw(event, x, y, flags, param):
     # grab references to the global variables
     global CURRENT_POINTS, IS_DRAWING, IMAGE, SAVED_POINTS, IS_HANDICAP
 
-    color = (255, 0, 0) if IS_HANDICAP else (0, 255, 0)
-
     if event == cv2.EVENT_LBUTTONDOWN:
+        IS_HANDICAP = False
+        color = (0, 255, 0)
         CURRENT_POINTS = [(x, y)]
         IS_DRAWING = True
     elif event == cv2.EVENT_RBUTTONDOWN:
+        IS_HANDICAP = True
+        color = (255, 0, 0)
         CURRENT_POINTS = [(x, y)]
         IS_DRAWING = True
-        IS_HANDICAP = not IS_HANDICAP
     elif event == cv2.EVENT_MOUSEMOVE:
+        color = (255, 0, 0) if IS_HANDICAP else (0, 255, 0)
         if IS_DRAWING:
             cv2.circle(IMAGE, (x, y), 3, color, -1)
             CURRENT_POINTS.append((x, y))
     elif event == cv2.EVENT_LBUTTONUP or event == cv2.EVENT_RBUTTONUP:
+        color = (255, 0, 0) if IS_HANDICAP else (0, 255, 0)
         CURRENT_POINTS.append((x, y))
         IS_DRAWING = False
         cv2.polylines(IMAGE, [np.array(CURRENT_POINTS)], True, color, 2)
