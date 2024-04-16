@@ -2,64 +2,24 @@ import {useState, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {LogBox} from 'react-native';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import {initializeApp} from 'firebase/app';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 import {firebaseConfig} from './frontend/config';
+import {
+  schedulePushNotification,
+  registerForPushNotificationsAsync,
+} from './frontend/notifications';
 
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); // Ignore all log notifications
 
 initializeApp(firebaseConfig);
 
-async function schedulePushNotification(spots, handicapSpots) {
-  await Notifications.scheduleNotificationAsync({
-    identifier: 'parkingSpotUpdate',
-    content: {
-      title: 'Karaportti 2 parkingspot update 🚗',
-      body: `There are: ${spots} parkingspots free and: ${handicapSpots} handicap spots free`,
-      data: {spots, handicapSpots},
-    },
-    trigger: null,
-  });
-  console.log('Push notification scheduled');
-}
-
-async function registerForPushNotificationsAsync() {
-  let token;
-  if (Device.isDevice) {
-    const {status: existingStatus} = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const {status} = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== 'granted') {
-      console.error('Failed to get push token for push notification!');
-      return;
-    }
-    try {
-      const devicePushToken = await Notifications.getDevicePushTokenAsync();
-      token = devicePushToken.data;
-      console.log('Device Push Token:', token);
-    } catch (error) {
-      console.error('Error fetching Device Push Token:', error);
-    }
-  } else {
-    console.error('Must use physical device for Push Notifications');
-  }
-  if (!token) {
-    console.error('Push token is undefined');
-  }
-  console.log('Registered for push notifications');
-  return token;
-}
-
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
-  const response = Notifications.useLastNotificationResponse();
+  // const response = Notifications.useLastNotificationResponse();
 
   const fetchSpots = async () => {
     const expoPushToken = await registerForPushNotificationsAsync();
@@ -130,12 +90,11 @@ const App = () => {
     return () => subscription.remove();
   }, []);
 
-  useEffect(() => {
+ /* useEffect(() => {
     if (response) {
-      // handle the notification
       console.log(response.notification);
     }
-  }, [response]);
+  }, [response]);*/
 
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
@@ -145,7 +104,6 @@ const App = () => {
       `Got background fetch call at date: ${new Date(now).toISOString()}`,
     );
     try {
-      // Put your task code here.
       await fetchSpots();
       console.log('Background fetch task completed successfully');
       return BackgroundFetch.BackgroundFetchResult.NewData;
