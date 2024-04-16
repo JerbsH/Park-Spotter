@@ -11,7 +11,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from backend.flaskserver import app
 
-
 class FlaskServerTestCase(unittest.TestCase):
     """
     Test case for the Flask server.
@@ -95,6 +94,21 @@ class FlaskServerTestCase(unittest.TestCase):
             self.assertEqual(response.status_code, 500)
             self.assertIn('error', response.get_json())
 
+    def test_register_device_without_token(self):
+        """
+        Test registering a device without a token.
+        """
+        response = self.app.post('/register', json={})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {'error': 'Token is missing'})
+
+    def test_register_device_with_empty_token(self):
+        """
+        Test registering a device with an empty token.
+        """
+        response = self.app.post('/register', json={'token': ''})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json(), {'error': 'Token is missing'})
 
 if __name__ == '__main__':
     unittest.main()

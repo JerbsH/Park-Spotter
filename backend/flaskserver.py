@@ -1,9 +1,10 @@
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+
 try:
-    from database import fetch_available_spots, fetch_available_handicap_spots
+    from database import fetch_available_spots, fetch_available_handicap_spots, save_token
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
@@ -11,6 +12,21 @@ app = Flask(__name__)
 CORS(app)
 
 logging.basicConfig(level=logging.INFO)
+@app.route('/register', methods=['POST'])
+def register_device():
+    """
+    This function registers a device for push notifications.
+    It expects a JSON payload with a 'token' key.
+    """
+    try:
+        token = request.json.get('token')
+        if not token:
+            return jsonify({'error': 'Token is missing'}), 400
+        save_token(token)
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        logging.exception("Error registering device: %s", str(e))
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/free_spots', methods=['GET'])
 def get_free_spots():
@@ -19,6 +35,8 @@ def get_free_spots():
     """
     try:
         free_spots = fetch_available_spots()
+        if not isinstance(free_spots, int) or free_spots < 0:
+            raise ValueError("Invalid number of free spots")
         return jsonify({'free_spots': free_spots}), 200
     except Exception as e:
         logging.exception("Error fetching free spots: %s", str(e))
@@ -31,6 +49,8 @@ def get_free_handicap_spots():
     """
     try:
         free_handicap_spots = fetch_available_handicap_spots()
+        if not isinstance(free_handicap_spots, int) or free_handicap_spots < 0:
+            raise ValueError("Invalid number of free handicap spots")
         return jsonify({'free_handicap_spots': free_handicap_spots}), 200
     except Exception as e:
         logging.exception("Error fetching free handicap spots: %s", str(e))
