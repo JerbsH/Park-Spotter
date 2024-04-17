@@ -20,7 +20,31 @@ const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
 
+  useEffect(() => {
+    const registerToken = async () => {
+      const expoPushToken = await registerForPushNotificationsAsync();
+
+      fetch(`${process.env.REACT_SERVER_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: expoPushToken,
+        }),
+      });
+    };
+
+    registerToken();
+  }, []);
+
   const fetchSpots = async () => {
+    // Register the background fetch task on component mount
+    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+      minimumInterval: 1, // 1 seconds
+    });
+    console.log('Background fetch task registered');
+
     let spots = 0;
     let handicapSpots = 0;
 
@@ -57,22 +81,6 @@ const App = () => {
   };
 
   useEffect(() => {
-    const sendToken = async () => {
-      const expoPushToken = await registerForPushNotificationsAsync();
-
-      fetch(`${process.env.REACT_SERVER_URL}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token: expoPushToken,
-        }),
-      });
-    };
-
-    sendToken();
-
     fetchSpots(); // Fetch immediately on component mount
     const timerId = setInterval(fetchSpots, 10000);
     return () => clearInterval(timerId); // Clean up the timer
