@@ -20,7 +20,7 @@ const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
   // const response = Notifications.useLastNotificationResponse();
-
+  // test comment for pushing
   const fetchSpots = async () => {
     const expoPushToken = await registerForPushNotificationsAsync();
 

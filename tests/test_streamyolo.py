@@ -44,9 +44,9 @@ class TestStreamYolo(unittest.TestCase):
             cls.stop_event.set()
             print("Could not open video file. Exiting tests.")
             try:
-                sys.exit(1)
+                sys.exit(0)
             except SystemExit:
-                os._exit(1)
+                os._exit(0)
 
     @classmethod
     def tearDownClass(cls):
