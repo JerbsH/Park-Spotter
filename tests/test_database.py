@@ -7,23 +7,115 @@ import sys
 import unittest
 from unittest.mock import MagicMock
 import mysql.connector
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from backend.database import fetch_available_spots, fetch_available_handicap_spots, store_free_spots, store_free_handicap_spots
 
+# Importing the required functions from backend.database
+from backend.database import (
+    fetch_available_spots,
+    fetch_available_handicap_spots,
+    store_free_spots,
+    store_free_handicap_spots,
+    fetch_token,
+    save_token
+)
 
 class TestDatabase(unittest.TestCase):
     """
     This class contains unit tests for the database module.
     """
 
+    def test_fetch_token_with_result(self):
+        """
+        Test case for fetch_token when the database returns a result.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = ("token123",)
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = fetch_token()
+
+        self.assertEqual(result, "token123")
+        mock_cursor.execute.assert_called_once_with("SELECT TOKEN FROM DEVICE_TOKEN")
+        mock_cnx.close.assert_called_once()
+
+    def test_fetch_token_with_no_result(self):
+        """
+        Test case for fetch_token when the database returns no result.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = None
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = fetch_token()
+
+        self.assertEqual(result, 0)
+        mock_cursor.execute.assert_called_once_with("SELECT TOKEN FROM DEVICE_TOKEN")
+        mock_cnx.close.assert_called_once()
+
+    def test_fetch_token_with_error(self):
+        """
+        Test case for fetch_token when the database throws an error.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = mysql.connector.Error
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = fetch_token()
+
+        self.assertEqual(result, 0)
+        mock_cursor.execute.assert_called_once_with("SELECT TOKEN FROM DEVICE_TOKEN")
+        mock_cnx.close.assert_called_once()
+
+    def test_save_token(self):
+        """
+        Test case for save_token.
+        """
+        mock_cursor = MagicMock()
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            save_token("token123")
+
+        query = (
+            "INSERT INTO DEVICE_TOKEN (ID, TOKEN) VALUES (%s, %s) "
+            "ON DUPLICATE KEY UPDATE TOKEN = %s"
+        )
+        mock_cursor.execute.assert_called_once_with(query, (1, "token123", "token123"))
+        mock_cnx.commit.assert_called_once()
+        mock_cnx.close.assert_called_once()
+
+    def test_save_token_with_error(self):
+        """
+        Test case for save_token when the database throws an error.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.execute.side_effect = mysql.connector.Error
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = save_token("token123")
+
+        self.assertEqual(result, 0)
+        query = (
+            "INSERT INTO DEVICE_TOKEN (ID, TOKEN) VALUES (%s, %s) "
+            "ON DUPLICATE KEY UPDATE TOKEN = %s"
+        )
+        mock_cursor.execute.assert_called_once_with(query, (1, "token123", "token123"))
+        mock_cnx.close.assert_called_once()
+
     def test_fetch_available_spots_with_result(self):
         """
         Test case for fetch_available_spots when the database returns a result.
         """
-        # Create mock objects for the database connection and cursor
         mock_cursor = MagicMock()
-        # Simulate a database response of 5 available parking spots
         mock_cursor.fetchone.return_value = (5,)
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
@@ -32,42 +124,31 @@ class TestDatabase(unittest.TestCase):
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
             result = fetch_available_spots()
 
-        # Assert that the function correctly interpreted the mock database response
         self.assertEqual(result, 5)
-        # Assert that the function made the correct database query
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
-        # Assert that the function correctly closed the database connection
         mock_cnx.close.assert_called_once()
 
     def test_fetch_available_spots_with_no_result(self):
         """
         Test case for fetch_available_spots when the database returns no result.
         """
-        # Create mock objects for the database connection and cursor
         mock_cursor = MagicMock()
-        # Simulate a database response of no available parking spots
         mock_cursor.fetchone.return_value = None
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
 
-        # Replace the actual database connection with the mock connection
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
             result = fetch_available_spots()
 
-        # Assert that the function correctly interpreted the mock database response
         self.assertEqual(result, 0)
-        # Assert that the function made the correct database query
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
-        # Assert that the function correctly closed the database connection
         mock_cnx.close.assert_called_once()
 
     def test_fetch_available_spots_with_error(self):
         """
         Test case for fetch_available_spots when the database throws an error.
         """
-        # Create mock objects for the database connection and cursor
         mock_cursor = MagicMock()
-        # Simulate a database error when executing the query
         mock_cursor.execute.side_effect = mysql.connector.Error
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
@@ -76,18 +157,14 @@ class TestDatabase(unittest.TestCase):
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
             result = fetch_available_spots()
 
-        # Assert that the function correctly handled the database error
-        self.assertEqual(result, 0)  # Updated this line
-        # Assert that the function attempted to make the correct database query
+        self.assertEqual(result, {'error': 'Unknown error'})
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
-        # Assert that the function correctly closed the database connection
         mock_cnx.close.assert_called_once()
 
     def test_store_free_spots(self):
         """
         Test case for store_free_spots.
         """
-        # Create mock objects for the database connection and cursor
         mock_cursor = MagicMock()
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
@@ -96,12 +173,9 @@ class TestDatabase(unittest.TestCase):
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
             store_free_spots(5)
 
-        # Assert that the function made the correct database query
         query = "UPDATE AVAILABLE_SPOTS SET PARKSPOTS = %s WHERE id = %s"
         mock_cursor.execute.assert_called_once_with(query, (5, 1))
-        # Assert that the function correctly committed the database transaction
         mock_cnx.commit.assert_called_once()
-        # Assert that the function correctly closed the database connection
         mock_cnx.close.assert_called_once()
 
     def test_fetch_available_handicap_spots_with_result(self):

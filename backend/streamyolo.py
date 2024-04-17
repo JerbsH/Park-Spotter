@@ -24,7 +24,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 try:
-    MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x6', pretrained=True)
+    MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
 except IOError as e:
     logging.error("Error loading model: %s", e)
     os._exit(1)
@@ -148,7 +148,7 @@ def main():
 
             # Calculate the number of free normal spots and free handicap spots
             total_normal_spots = 6
-            total_handicap_spots = 1
+            total_handicap_spots = 2
             free_normal_spots = total_normal_spots - total_normal_cars
             free_handicap_spots = total_handicap_spots - total_handicap_cars
             store_free_spots(free_normal_spots)
