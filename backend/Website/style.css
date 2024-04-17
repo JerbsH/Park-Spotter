@@ -1,0 +1,35 @@
+div {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(243, 197, 255);
+    color: rgb(0, 0, 0);
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    align-items: center;
+}
+p {
+    font-size: 20px;
+    margin: 2px;
+}
+aside#image{
+  display: flex;
+  margin: 2px;
+  flex-direction: row;
+  flex:1;
+}
+article {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    width: 50%;
+}
+
