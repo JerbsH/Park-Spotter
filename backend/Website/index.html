@@ -7,20 +7,24 @@
 <body>
   <div id="main">
     <h1>Park-Spotter</h1>
-    <p>Welcome to the Park-Spotter setup page</p>
+    <p>Welcome to the Park-Spotter setup page.</p>
     <p>Here you can add the picture of the parking area and add the parking areas to it.</p>
     <p>Here you will also specify how much free space is on the parking area.</p>
 
     <article>
-      <aside id="image">
-        <p>Picture of parking area</p>
+      <section>
+        <p>Picture of parking area:</p>
         <input type="file" accept="image/*" id="imagePicker">
-      </aside>
-
-      <input type="text" id="textInput1" placeholder="Enter text 1">
-      <input type="text" id="textInput2" placeholder="Enter text 2">
-
-      <button onclick="sendData()">Send</button>
+      </section>
+      <section>
+        <p>Total parking spots:</p>
+        <input type="text" id="number" placeholder="0" name="parking">
+      </section>
+      <section>
+        <p>Total accessible parking:</p>
+        <input type="text" id="number" placeholder="0" name="accPark">
+      </section>
+      <button onclick="sendData()">Next</button>
     </article>
   </div>
 </body>

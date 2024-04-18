@@ -1,7 +1,4 @@
 function sendData() {
-  // Add your code here to send the data
-}
-
-function myFunction() {
-  // Add your code here for the button function
+  var parking = document.getElementsByName("parking")[0].value;
+  var accPark = document.getElementsByName("accPark")[0].value;
 }

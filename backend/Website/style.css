@@ -14,11 +14,13 @@ p {
     font-size: 20px;
     margin: 2px;
 }
-aside#image{
+section{
   display: flex;
-  margin: 2px;
-  flex-direction: row;
+  margin: 10px;
+  flex-direction: column;
   flex:1;
+  width: 100%;
+  align-items: center;
 }
 article {
     display: flex;
@@ -30,6 +32,23 @@ article {
     border-radius: 5px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
     text-align: center;
-    width: 50%;
+    align-items: center;
+    border-radius: 15px;
 }
-
+button{
+  padding: 20px;
+  border-radius: 15px;
+  background-color: rgb(243, 197, 255);
+  margin: 10px;
+}
+button:hover{
+  background-color: rgb(237, 164, 255);
+}
+input#number{
+  text-align: center;
+  width: 20%;
+  border-radius: 15px;
+}
+input#imagePicker{
+  width: 65%;
+}
