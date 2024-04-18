@@ -11,6 +11,8 @@ import {
   schedulePushNotification,
   registerForPushNotificationsAsync,
 } from './frontend/notifications';
+import {setupGeofencing} from './frontend/geofencing';
+import * as Location from 'expo-location'; // Import Location module
 
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); // Ignore all log notifications
@@ -20,6 +22,8 @@ initializeApp(firebaseConfig);
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
+
+  const [location, setLocation] = useState(null);
 
   useEffect(() => {
     const registerToken = async () => {
@@ -95,6 +99,25 @@ const App = () => {
     return () => subscription.remove();
   }, []);
 
+  useEffect(() => {
+    console.log('useEffect called');
+    (async () => {
+      try {
+        const {status} = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.error('Location permission not granted');
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({});
+        setLocation(location);
+        setupGeofencing(); // Call setupGeofencing function here
+      } catch (error) {
+        console.error('Error getting location', error);
+      }
+    })();
+  }, []);
+
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
@@ -114,34 +137,39 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <View
-        style={{justifyContent: 'center', alignItems: 'center', margin: 20}}
-      >
-        <MapView
-          style={{width: 450, height: 450}} // adjust the size as needed
-          initialRegion={{
-            latitude: 60.2054911, // default latitude
-            longitude: 24.6559001, // default longitude
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          }}
-          region={{
-            latitude: 60.2054911, // default latitude
-            longitude: 24.6559001, // default longitude
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
+      {location && (
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 20,
           }}
         >
-          <Marker
-            coordinate={{
-              latitude: 60.2054911, // default latitude
-              longitude: 24.6559001, // default longitude
+          <MapView
+            style={{width: 450, height: 450}}
+            initialRegion={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
             }}
-            title="My Location"
-          />
-        </MapView>
-      </View>
-
+            region={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          >
+            <Marker
+              coordinate={{
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              }}
+              title="My Location"
+            />
+          </MapView>
+        </View>
+      )}
       <View style={styles.overlay}>
         <Text style={styles.title}>
           Parking Spot Availability at Karaportti 2:
