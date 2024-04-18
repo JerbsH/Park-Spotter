@@ -1,5 +1,6 @@
-import {useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import MapView, {Marker} from 'react-native-maps'; // Import MapView and Marker
 import {LogBox} from 'react-native';
 import * as Notifications from 'expo-notifications';
 import {initializeApp} from 'firebase/app';
@@ -19,26 +20,31 @@ initializeApp(firebaseConfig);
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
-  // const response = Notifications.useLastNotificationResponse();
+
+  useEffect(() => {
+    const registerToken = async () => {
+      const expoPushToken = await registerForPushNotificationsAsync();
+
+      fetch(`${process.env.REACT_SERVER_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: expoPushToken,
+        }),
+      });
+    };
+
+    registerToken();
+  }, []);
 
   const fetchSpots = async () => {
-    const expoPushToken = await registerForPushNotificationsAsync();
-
     // Register the background fetch task on component mount
     BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
       minimumInterval: 1, // 1 seconds
     });
     console.log('Background fetch task registered');
-
-    fetch(`${process.env.REACT_SERVER_URL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: expoPushToken,
-      }),
-    });
 
     let spots = 0;
     let handicapSpots = 0;
@@ -59,7 +65,6 @@ const App = () => {
     await fetch(`${process.env.REACT_HANDICAP_PARKINGSPOTS_URL}`)
       .then((response) => response.text()) // Get response text
       .then((text) => {
-        console.log('Raw response:', text);
         return JSON.parse(text); // Parse the text as JSON
       })
       .then((data) => {
@@ -90,12 +95,6 @@ const App = () => {
     return () => subscription.remove();
   }, []);
 
- /* useEffect(() => {
-    if (response) {
-      console.log(response.notification);
-    }
-  }, [response]);*/
-
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
@@ -115,22 +114,59 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        Parking Spot Availability at Karaportti 2:
-      </Text>
-      <Text style={styles.spots}>{spots}</Text>
-      <Text style={styles.subtitle}>Available Spots</Text>
-      <Text style={styles.spots}>{handicapSpots}</Text>
-      <Text style={styles.subtitle}>Available Handicap Spots</Text>
+      <View
+        style={{justifyContent: 'center', alignItems: 'center', margin: 20}}
+      >
+        <MapView
+          style={{width: 450, height: 450}} // adjust the size as needed
+          initialRegion={{
+            latitude: 60.2054911, // default latitude
+            longitude: 24.6559001, // default longitude
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+          region={{
+            latitude: 60.2054911, // default latitude
+            longitude: 24.6559001, // default longitude
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        >
+          <Marker
+            coordinate={{
+              latitude: 60.2054911, // default latitude
+              longitude: 24.6559001, // default longitude
+            }}
+            title="My Location"
+          />
+        </MapView>
+      </View>
+
+      <View style={styles.overlay}>
+        <Text style={styles.title}>
+          Parking Spot Availability at Karaportti 2:
+        </Text>
+        <Text style={styles.spots}>{spots}</Text>
+        <Text style={styles.subtitle}>Available Spots</Text>
+        <Text style={styles.spots}>{handicapSpots}</Text>
+        <Text style={styles.subtitle}>Available Handicap Spots</Text>
+      </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5FCFF',
-    alignItems: 'center',
+  },
+  map: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 30,
