@@ -5,10 +5,11 @@ const GEOFENCE_TASK_NAME = 'GEOFENCE_TASK';
 let firstVisit = false;
 
 // Define the geofence coordinates and radius
+// Karaportti 2: 60.224185, 24.758153
 const geofence = {
-    latitude: 60.2135,
-    longitude: 24.8842,
-    radius: 2000, // 2km
+    latitude: 60.224185,
+    longitude: 24.758153,
+    radius: 250, // 250m
 };
 
 // Check user's location, compare to geofence
