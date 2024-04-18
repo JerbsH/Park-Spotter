@@ -1,15 +1,16 @@
-import {useState, useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
-import {LogBox} from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { LogBox } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import {initializeApp} from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
-import {firebaseConfig} from './frontend/config';
+import { firebaseConfig } from './frontend/config';
 import {
   schedulePushNotification,
   registerForPushNotificationsAsync,
 } from './frontend/notifications';
+import { startBackgroundLocationTracking, stopBackgroundLocationTracking } from './frontend/locationservice';
 
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); // Ignore all log notifications
@@ -36,6 +37,10 @@ const App = () => {
     };
 
     registerToken();
+  }, []);
+
+  useEffect(() => {
+    startBackgroundLocationTracking();
   }, []);
 
   const fetchSpots = async () => {
