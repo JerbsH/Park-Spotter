@@ -40,7 +40,17 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    startBackgroundLocationTracking();
+    // TODO: Set callback function for push notifications
+    // TODO: 
+    const onFirstVisit = () => {
+      console.log("Trigger push notification");
+      // startMonitoringSpots (or whatever)
+    }
+    startBackgroundLocationTracking(onFirstVisit);
+
+    return () => {
+      stopBackgroundLocationTracking();
+    }
   }, []);
 
   const fetchSpots = async () => {

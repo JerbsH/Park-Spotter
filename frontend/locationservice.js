@@ -2,37 +2,48 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 
 const GEOFENCE_TASK_NAME = 'GEOFENCE_TASK';
+let firstVisit = false;
 
 // Define the geofence coordinates and radius
 const geofence = {
     latitude: 60.2135,
     longitude: 24.8842,
-    radius: 1000, // 1km
+    radius: 2000, // 2km
 };
 
-TaskManager.defineTask(GEOFENCE_TASK_NAME, async ({ data, error }) => {
-    if (error) {
-        console.error('Background location task error:', error.message);
-        return;
+// Check user's location, compare to geofence
+const handleUserLocation = async (coords, onFirstVisit) => {
+    // Check if the user's location is inside the geofence
+    if (isInsideGeofence(coords, geofence) && firstVisit) {
+        console.log("User is inside the specific area for the first time");
+        firstVisit = false;
+        onFirstVisit();
+    } else if (isInsideGeofence(coords, geofence)) {
+        console.log("User is inside the specific area")
     }
+    else {
+        console.log("User is outside the specific area");
+        firstVisit = true;
+    }
+}
 
-    if (data) {
-        console.log(data);
-        const { locations } = data;
-        for (const location of locations) {
-            const { coords } = location;
-            // Check if the user's location is inside the geofence
-            if (isInsideGeofence(coords, geofence)) {
-                // Trigger your functionality here
-                console.log('User is inside the specific area');
-                // Call your specific function here
-            } else {
-                console.log('User is outside the specific area');
-            }
+const handleUserLocationTask = async ({ data: { locations } }) => {
+    locations.forEach((location) => {
+        const isInsideGeofence = isInsideGeofence(location.coords, geofence);
+        if (isInsideGeofence && firstVisit) {
+            console.log("User is inside the specific area for the first time");
+            firstVisit = false;
+            onFirstVisit();
         }
-    }
-    console.log("LOCATION");
-});
+        else if (isInsideGeofence) {
+            console.log("User is inside the specific area");
+        }
+        else {
+            console.log("User is outside the specific area");
+            firstVisit = true;
+        }
+    });
+}
 
 // Function to check if the user's location is inside the geofence
 const isInsideGeofence = (userCoords, geofence) => {
@@ -53,7 +64,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
     // Calculate distance using Pythagorean theorem
     const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2) * 6371e3; // Earth's radius in meters
-
+    console.log("DISTANCE: " + distance);
     return distance;
 };
 
@@ -62,7 +73,7 @@ const requestBackgroundLocationPermissionsWithTimeout = async (timeout) => {
     const timeoutPromise = new Promise((resolve, reject) => {
         timerId = setTimeout(() => {
             clearTimeout(timerId);
-            reject(new Error("Permission request timed out"));
+            reject(new Error("Permission request timed out."));
         }, timeout);
     });
 
@@ -75,31 +86,39 @@ const requestBackgroundLocationPermissionsWithTimeout = async (timeout) => {
         return status;
     } catch (error) {
         console.error("Error requesting background location permissions:", error);
-        return null;
+        return "error";
     }
 }
 
 // Function to start background location tracking
-export async function startBackgroundLocationTracking() {
+export const startBackgroundLocationTracking = async (onFirstVisit) => {
     const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
-    if (foregroundStatus === 'granted') {
-        console.log("[GEO] Foreground location permissions granted.");
-        const { status: backgroundStatus } = await requestBackgroundLocationPermissionsWithTimeout(5000);
-        if (backgroundStatus === 'granted') {
-            console.log("[GEO] Background location permissions granted.");
+    if (foregroundStatus === "granted") {
+
+        // Request background permissions, timed for compability between all platforms
+        const { status: backgroundStatus } = await requestBackgroundLocationPermissionsWithTimeout(10000);
+
+        if (backgroundStatus === "granted") {
+            // Background task
+            TaskManager.defineTask(GEOFENCE_TASK_NAME, handleUserLocationTask);
             await Location.startLocationUpdatesAsync(GEOFENCE_TASK_NAME, {
                 accuracy: Location.Accuracy.Balanced,
+                onFirstVisit,
             });
-        } else {
-            console.log("[GEO] Background location permissions denied.");
         }
-    } else {
-        console.log("[GEO] Foreground location permissions denied.");
+
+        // Foreground location tracker
+        const locationSubscription = await Location.watchPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+            distanceInterval: 10,
+            timeInterval: 1500,
+        }, location => {
+            handleUserLocation(location.coords, onFirstVisit);
+        });
     }
 };
 
 // Function to stop background location tracking
 export const stopBackgroundLocationTracking = async () => {
     await Location.stopLocationUpdatesAsync(GEOFENCE_TASK_NAME);
-    console.log('Background location tracking stopped');
 };
