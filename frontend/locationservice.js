@@ -57,12 +57,34 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
     return distance;
 };
 
+const requestBackgroundLocationPermissionsWithTimeout = async (timeout) => {
+    let timerId;
+    const timeoutPromise = new Promise((resolve, reject) => {
+        timerId = setTimeout(() => {
+            clearTimeout(timerId);
+            reject(new Error("Permission request timed out"));
+        }, timeout);
+    });
+
+    const permissionsPromise = Location.requestBackgroundPermissionsAsync();
+
+    try {
+        await Promise.race([permissionsPromise, timeoutPromise]);
+        clearTimeout(timerId);
+        const { status } = await permissionsPromise;
+        return status;
+    } catch (error) {
+        console.error("Error requesting background location permissions:", error);
+        return null;
+    }
+}
+
 // Function to start background location tracking
 export async function startBackgroundLocationTracking() {
     const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
     if (foregroundStatus === 'granted') {
         console.log("[GEO] Foreground location permissions granted.");
-        const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+        const { status: backgroundStatus } = await requestBackgroundLocationPermissionsWithTimeout(5000);
         if (backgroundStatus === 'granted') {
             console.log("[GEO] Background location permissions granted.");
             await Location.startLocationUpdatesAsync(GEOFENCE_TASK_NAME, {
