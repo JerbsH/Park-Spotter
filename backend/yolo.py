@@ -18,7 +18,7 @@ except Exception as e:
 
 try:
     # Load the saved points
-    with open("./backend/carSpots2.pkl", "rb") as file:
+    with open("carSpots2.pkl", "rb") as file:
         POINTS = pickle.load(file)
 except FileNotFoundError:
     print("File 'carSpots2.pkl' not found.", file=sys.stderr)
@@ -27,22 +27,36 @@ except Exception as e:
     print(f"Error loading points: {e}", file=sys.stderr)
     sys.exit(1)
 
+# Separate the normal spots and the handicap spot
+NORMAL_POINTS = POINTS[:-1]  # All spots except the last one
+HANDICAP_POINTS = [POINTS[-1]]  # Only the last spot
+
 # Convert the points to a numpy array and calculate centroids
-POINTS_NP = [np.array(point_group) for point_group in POINTS]
-ANNOTATED_CENTROIDS = [
+NORMAL_POINTS_NP = [np.array(point_group) for point_group in NORMAL_POINTS]
+HANDICAP_POINTS_NP = [np.array(point_group) for point_group in HANDICAP_POINTS]
+
+NORMAL_CENTROIDS = [
     (int(np.mean(point_group[:, 0])), int(np.mean(point_group[:, 1])))
-    for point_group in POINTS_NP
+    for point_group in NORMAL_POINTS_NP
+]
+HANDICAP_CENTROIDS = [
+    (int(np.mean(point_group[:, 0])), int(np.mean(point_group[:, 1])))
+    for point_group in HANDICAP_POINTS_NP
 ]
 
 # Map centroids to their corresponding points for faster lookup
-CENTROID_TO_POINTS = dict(zip(ANNOTATED_CENTROIDS, POINTS_NP))
+NORMAL_CENTROID_TO_POINTS = dict(zip(NORMAL_CENTROIDS, NORMAL_POINTS_NP))
+HANDICAP_CENTROID_TO_POINTS = dict(zip(HANDICAP_CENTROIDS, HANDICAP_POINTS_NP))
+
+# Combine normal and handicap points
+POINTS_NP = NORMAL_POINTS_NP + HANDICAP_POINTS_NP
 
 # Set of vehicle classes for faster lookup
 VEHICLE_CLASSES = [2, 3, 7] # Car, motorcycle, truck
 
 try:
     # Open the video file
-    VIDEO_PATH = './backend/source/jerenAutot.mp4'
+    VIDEO_PATH = './source/jerenAutot.mp4'
     cap = cv2.VideoCapture(VIDEO_PATH)
     if not cap.isOpened():
         raise ValueError("Could not open video file.")
@@ -60,7 +74,7 @@ last_frame_time = time.time()
 
 try:
     # Load the image and get its size
-    image = cv2.imread("./backend/source/jerenAutot.jpg")
+    image = cv2.imread("./source/jerenAutot.jpg")
     if image is None:
         raise ValueError("Could not load image.")
     image_height, image_width = image.shape[:2]
@@ -69,12 +83,12 @@ except Exception as e:
     sys.exit(1)
 
 # Create a resizable window
-#cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
+cv2.namedWindow('Video Feed', cv2.WINDOW_NORMAL)
 
 # Resize the window
 WINDOW_WIDTH = 1917
 WINDOW_HEIGHT = 1045
-#cv2.resizeWindow('Video Feed', WINDOW_WIDTH, WINDOW_HEIGHT)
+cv2.resizeWindow('Video Feed', WINDOW_WIDTH, WINDOW_HEIGHT)
 
 # Calculate the scaling factors
 scale_x = WINDOW_WIDTH / image_width
@@ -90,14 +104,14 @@ while cap.isOpened():
             break
 
         # Resize the frame to match the size of the image
-        #frame = cv2.resize(frame, (WINDOW_WIDTH, WINDOW_HEIGHT))
+        frame = cv2.resize(frame, (WINDOW_WIDTH, WINDOW_HEIGHT))
         start_time = time.time()  # Start time
 
         # Draw each region on the frame
-        #for point_group in scaled_points:
-            #cv2.polylines(frame, [point_group.astype(int)], True, (0, 255, 0), 2)
+        for point_group in scaled_points:
+            cv2.polylines(frame, [point_group.astype(int)], True, (0, 255, 0), 2)
         # Display the video feed
-        #cv2.imshow('Video Feed', frame)
+        cv2.imshow('Video Feed', frame)
         # Process frame every 5 seconds in real-time
         if time.time() - last_frame_time >= FRAME_INTERVAL:
             last_frame_time = time.time()
@@ -121,13 +135,13 @@ while cap.isOpened():
 
                     # Binary search for potential matching regions based on the x-coordinate of the centroid
                     left = 0
-                    right = len(ANNOTATED_CENTROIDS) - 1
+                    right = len(NORMAL_CENTROIDS) - 1
                     while left <= right:
                         mid = (left + right) // 2
-                        if ANNOTATED_CENTROIDS[mid][0] == centroid_x:
+                        if NORMAL_CENTROIDS[mid][0] == centroid_x:
                             idx = mid
                             break
-                        elif ANNOTATED_CENTROIDS[mid][0] < centroid_x:
+                        elif NORMAL_CENTROIDS[mid][0] < centroid_x:
                             left = mid + 1
                         else:
                             right = mid - 1
@@ -136,7 +150,7 @@ while cap.isOpened():
 
                     # Check if the detected object falls within the potential matching region
                     if cv2.pointPolygonTest(
-                            CENTROID_TO_POINTS[ANNOTATED_CENTROIDS[idx]], (centroid_x, centroid_y), False
+                            NORMAL_CENTROID_TO_POINTS[NORMAL_CENTROIDS[idx]], (centroid_x, centroid_y), False
                     ) >= 0:
                         # Check if the box overlaps with any previously counted box
                         for counted_box in COUNTED_BOXES:
@@ -174,4 +188,4 @@ while cap.isOpened():
         break
 
 cap.release()
-#cv2.destroyAllWindows()
+cv2.destroyAllWindows()

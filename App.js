@@ -1,5 +1,6 @@
-import {useState, useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, Modal, Button} from 'react-native';
+import MapView, {Marker} from 'react-native-maps'; // Import MapView and Marker
 import {LogBox} from 'react-native';
 import * as Notifications from 'expo-notifications';
 import {initializeApp} from 'firebase/app';
@@ -23,6 +24,7 @@ initializeApp(firebaseConfig);
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
   const [isInside, setIsInside] = useState(false);
 
   useEffect(() => {
@@ -131,7 +133,6 @@ const App = () => {
     );
     return () => subscription.remove();
   }, []);
-
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
@@ -152,22 +153,89 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        Parking Spot Availability at Karaportti 2:
-      </Text>
-      <Text style={styles.spots}>{spots}</Text>
-      <Text style={styles.subtitle}>Available Spots</Text>
-      <Text style={styles.spots}>{handicapSpots}</Text>
-      <Text style={styles.subtitle}>Available Handicap Spots</Text>
+      <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
+        <Button
+          title={modalVisible ? 'Hide Map' : 'Show Map'}
+          onPress={() => setModalVisible(!modalVisible)}
+        />
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={{marginTop: 22}}>
+          <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
+            <Button
+              title={modalVisible ? 'Hide Map' : 'Show Map'}
+              onPress={() => setModalVisible(!modalVisible)}
+            />
+          </View>
+          <View>
+            {location && (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 20,
+                }}
+              >
+                <MapView
+                  style={{width: 450, height: 450}}
+                  initialRegion={{
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                  region={{
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: location.coords.latitude,
+                      longitude: location.coords.longitude,
+                    }}
+                    title="My Location"
+                  />
+                </MapView>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+      <View style={styles.overlay}>
+        <Text style={styles.title}>
+          Parking Spot Availability at Karaportti 2:
+        </Text>
+        <Text style={styles.spots}>{spots}</Text>
+        <Text style={styles.subtitle}>Available Spots</Text>
+        <Text style={styles.spots}>{handicapSpots}</Text>
+        <Text style={styles.subtitle}>Available Handicap Spots</Text>
+      </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5FCFF',
-    alignItems: 'center',
+  },
+  map: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 30,
