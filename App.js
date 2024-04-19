@@ -11,8 +11,10 @@ import {
   schedulePushNotification,
   registerForPushNotificationsAsync,
 } from './frontend/notifications';
-import {setupGeofencing} from './frontend/geofencing';
-import * as Location from 'expo-location'; // Import Location module
+import {
+  startBackgroundLocationTracking,
+  stopBackgroundLocationTracking,
+} from './frontend/locationservice';
 
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); // Ignore all log notifications
@@ -22,9 +24,8 @@ initializeApp(firebaseConfig);
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
-
-  const [location, setLocation] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isInside, setIsInside] = useState(false);
 
   useEffect(() => {
     const registerToken = async () => {
@@ -44,13 +45,19 @@ const App = () => {
     registerToken();
   }, []);
 
-  const fetchSpots = async () => {
-    // Register the background fetch task on component mount
-    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 1, // 1 seconds
-    });
-    console.log('Background fetch task registered');
+  useEffect(() => {
+    const onFirstVisit = async () => {
+      console.log('Trigger push notification');
+      await fetchSpots();
+    };
+    startBackgroundLocationTracking(onFirstVisit);
 
+    return () => {
+      stopBackgroundLocationTracking();
+    };
+  }, []);
+
+  const fetchSpots = async () => {
     let spots = 0;
     let handicapSpots = 0;
 
@@ -82,13 +89,40 @@ const App = () => {
 
     setSpots(spots);
     setHandicapSpots(handicapSpots);
-    await schedulePushNotification(spots, handicapSpots);
+
+    if (isInside) {
+      await schedulePushNotification(spots, handicapSpots);
+    }
   };
 
   useEffect(() => {
-    fetchSpots(); // Fetch immediately on component mount
-    const timerId = setInterval(fetchSpots, 10000);
-    return () => clearInterval(timerId); // Clean up the timer
+    fetchSpots();
+    // Register the background fetch task on component mount
+    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+      minimumInterval: 1, // 1 seconds
+    });
+    console.log('Background fetch task registered');
+    // Fetch every 10 seconds
+    const intervalId = setInterval(fetchSpots, 10000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const onFirstVisit = () => {
+      fetchSpots();
+    };
+
+    const onLocationChange = (isInsideGeofence) => {
+      setIsInside(isInsideGeofence);
+    };
+
+    startBackgroundLocationTracking(onFirstVisit, onLocationChange);
+
+    return () => {
+      stopBackgroundLocationTracking();
+    };
   }, []);
 
   useEffect(() => {
@@ -99,26 +133,6 @@ const App = () => {
     );
     return () => subscription.remove();
   }, []);
-
-  useEffect(() => {
-    console.log('useEffect called');
-    (async () => {
-      try {
-        const {status} = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          console.error('Location permission not granted');
-          return;
-        }
-
-        const location = await Location.getCurrentPositionAsync({});
-        setLocation(location);
-        setupGeofencing(); // Call setupGeofencing function here
-      } catch (error) {
-        console.error('Error getting location', error);
-      }
-    })();
-  }, []);
-
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
@@ -128,6 +142,7 @@ const App = () => {
     );
     try {
       await fetchSpots();
+
       console.log('Background fetch task completed successfully');
       return BackgroundFetch.BackgroundFetchResult.NewData;
     } catch (err) {

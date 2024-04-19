@@ -2,7 +2,6 @@ import logging
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-
 try:
     from database import fetch_available_spots, fetch_available_handicap_spots, save_token
 except ImportError:
