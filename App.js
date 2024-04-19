@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Modal, Button} from 'react-native';
 import MapView, {Marker} from 'react-native-maps'; // Import MapView and Marker
 import {LogBox} from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -24,6 +24,7 @@ const App = () => {
   const [handicapSpots, setHandicapSpots] = useState(0);
 
   const [location, setLocation] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const registerToken = async () => {
@@ -137,39 +138,64 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      {location && (
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: 20,
-          }}
-        >
-          <MapView
-            style={{width: 450, height: 450}}
-            initialRegion={{
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            region={{
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-          >
-            <Marker
-              coordinate={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              }}
-              title="My Location"
+      <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
+        <Button
+          title={modalVisible ? 'Hide Map' : 'Show Map'}
+          onPress={() => setModalVisible(!modalVisible)}
+        />
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={{marginTop: 22}}>
+          <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
+            <Button
+              title={modalVisible ? 'Hide Map' : 'Show Map'}
+              onPress={() => setModalVisible(!modalVisible)}
             />
-          </MapView>
+          </View>
+          <View>
+            {location && (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 20,
+                }}
+              >
+                <MapView
+                  style={{width: 450, height: 450}}
+                  initialRegion={{
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                  region={{
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: location.coords.latitude,
+                      longitude: location.coords.longitude,
+                    }}
+                    title="My Location"
+                  />
+                </MapView>
+              </View>
+            )}
+          </View>
         </View>
-      )}
+      </Modal>
       <View style={styles.overlay}>
         <Text style={styles.title}>
           Parking Spot Availability at Karaportti 2:
