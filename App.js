@@ -75,7 +75,6 @@ const App = () => {
     await fetch(`${process.env.REACT_HANDICAP_PARKINGSPOTS_URL}`)
       .then((response) => response.text()) // Get response text
       .then((text) => {
-        console.log('Raw response:', text);
         return JSON.parse(text); // Parse the text as JSON
       })
       .then((data) => {
@@ -95,12 +94,17 @@ const App = () => {
   };
 
   useEffect(() => {
+    fetchSpots();
     // Register the background fetch task on component mount
     BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
       minimumInterval: 1, // 1 seconds
     });
     console.log('Background fetch task registered');
-    fetchSpots(); // Fetch immediately on component mount
+    // Fetch every 10 seconds
+    const intervalId = setInterval(fetchSpots, 10000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {

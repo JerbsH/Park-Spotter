@@ -18,12 +18,30 @@ const handleUserLocation = async (coords, onFirstVisit, setIsInside) => {
   // Check if the user's location is inside the geofence
   if (isInsideGeofence(coords, geofence) && firstVisit) {
     console.log('User is inside the specific area for the first time');
+    console.log(
+      'DISTANCE: ' +
+        calculateDistance(
+          coords.latitude,
+          coords.longitude,
+          geofence.latitude,
+          geofence.longitude,
+        ),
+    );
     firstVisit = false;
     setIsInside(true);
     onFirstVisit();
     schedulePushNotification();
   } else if (isInsideGeofence(coords, geofence)) {
     console.log('User is inside the specific area');
+    console.log(
+      'DISTANCE: ' +
+        calculateDistance(
+          coords.latitude,
+          coords.longitude,
+          geofence.latitude,
+          geofence.longitude,
+        ),
+    );
     setIsInside(true);
     schedulePushNotification();
   } else {
@@ -42,12 +60,30 @@ const handleUserLocationTask = async (
     const isInsideGeofence = isInsideGeofence(location.coords, geofence);
     if (isInsideGeofence && firstVisit) {
       console.log('User is inside the specific area for the first time');
+      console.log(
+        'DISTANCE: ' +
+          calculateDistance(
+            location.coords.latitude,
+            location.coords.longitude,
+            geofence.latitude,
+            geofence.longitude,
+          ),
+      );
       firstVisit = false;
       setIsInside(true);
       onFirstVisit();
       schedulePushNotification();
     } else if (isInsideGeofence) {
       console.log('User is inside the specific area');
+      console.log(
+        'DISTANCE: ' +
+          calculateDistance(
+            location.coords.latitude,
+            location.coords.longitude,
+            geofence.latitude,
+            geofence.longitude,
+          ),
+      );
       setIsInside(true);
     } else {
       console.log('User is outside the specific area');
@@ -82,7 +118,6 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
   // Calculate distance using Pythagorean theorem
   const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2) * 6371e3; // Earth's radius in meters
-  console.log('DISTANCE: ' + distance);
   return distance;
 };
 
