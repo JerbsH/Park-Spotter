@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@babel/eslint-parser": "^7.24.1",
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "eslint-plugin-react-native": "^4.1.0",
     "expo": "~50.0.14",
     "expo-background-fetch": "^11.8.1",
     "expo-device": "^5.9.3",
+    "expo-location": "~16.5.5",
     "expo-notifications": "^0.27.6",
     "expo-status-bar": "~1.11.1",
     "expo-task-manager": "^11.7.2",
