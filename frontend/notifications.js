@@ -1,27 +1,12 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 
-export async function schedulePushNotification(
-  spots,
-  handicapSpots,
-  geofenceAction,
-  geofence,
-) {
-  let bodyMessage = `There are: ${spots} parking spots free and: ${handicapSpots} handicap spots free`;
-
-  if (geofenceAction && geofence) {
-    bodyMessage += `\nGeofence event: ${geofenceAction} at latitude: ${geofence.latitude}, longitude: ${geofence.longitude}`;
-    // Add a line indicating that the notification is from geofencing
-    bodyMessage += `\nNotification triggered by geofencing`;
-  }
-  // Log the source of the notification
-  console.log('Push notification scheduled from geofencing');
-
+export async function schedulePushNotification(spots, handicapSpots) {
   await Notifications.scheduleNotificationAsync({
     identifier: 'parkingSpotUpdate',
     content: {
       title: 'Karaportti 2 parkingspot update 🚗',
-      body: bodyMessage,
+      body: `There are: ${spots} parkingspots free and: ${handicapSpots} handicap spots free`,
       data: {spots, handicapSpots},
     },
     trigger: null,
