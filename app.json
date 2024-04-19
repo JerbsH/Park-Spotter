@@ -38,6 +38,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "isAccessToLocationAlwaysAndWhenInUsePermission": true,
+          "isForegroundService": {
+            "value": true,
+            "label": "Parkspotter needs access to your location so it can notify when you're approaching a parking area."
+          }
+        }
+      ]
+    ]
   }
 }

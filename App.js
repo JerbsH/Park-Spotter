@@ -1,16 +1,19 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { LogBox } from 'react-native';
+import {useState, useEffect} from 'react';
+import {View, Text, StyleSheet} from 'react-native';
+import {LogBox} from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { initializeApp } from 'firebase/app';
+import {initializeApp} from 'firebase/app';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
-import { firebaseConfig } from './frontend/config';
+import {firebaseConfig} from './frontend/config';
 import {
   schedulePushNotification,
   registerForPushNotificationsAsync,
 } from './frontend/notifications';
-import { startBackgroundLocationTracking, stopBackgroundLocationTracking } from './frontend/locationservice';
+import {
+  startBackgroundLocationTracking,
+  stopBackgroundLocationTracking,
+} from './frontend/locationservice';
 
 LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); // Ignore all log notifications
@@ -20,6 +23,7 @@ initializeApp(firebaseConfig);
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
+  const [isInside, setIsInside] = useState(false);
 
   useEffect(() => {
     const registerToken = async () => {
@@ -40,26 +44,18 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    // TODO: Set callback function for push notifications
-    // TODO: 
-    const onFirstVisit = () => {
-      console.log("Trigger push notification");
-      // startMonitoringSpots (or whatever)
-    }
+    const onFirstVisit = async () => {
+      console.log('Trigger push notification');
+      await fetchSpots();
+    };
     startBackgroundLocationTracking(onFirstVisit);
 
     return () => {
       stopBackgroundLocationTracking();
-    }
+    };
   }, []);
 
   const fetchSpots = async () => {
-    // Register the background fetch task on component mount
-    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 1, // 1 seconds
-    });
-    console.log('Background fetch task registered');
-
     let spots = 0;
     let handicapSpots = 0;
 
@@ -92,13 +88,35 @@ const App = () => {
 
     setSpots(spots);
     setHandicapSpots(handicapSpots);
-    await schedulePushNotification(spots, handicapSpots);
+
+    if (isInside) {
+      await schedulePushNotification(spots, handicapSpots);
+    }
   };
 
   useEffect(() => {
+    // Register the background fetch task on component mount
+    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+      minimumInterval: 1, // 1 seconds
+    });
+    console.log('Background fetch task registered');
     fetchSpots(); // Fetch immediately on component mount
-    const timerId = setInterval(fetchSpots, 10000);
-    return () => clearInterval(timerId); // Clean up the timer
+  }, []);
+
+  useEffect(() => {
+    const onFirstVisit = () => {
+      fetchSpots();
+    };
+
+    const onLocationChange = (isInsideGeofence) => {
+      setIsInside(isInsideGeofence);
+    };
+
+    startBackgroundLocationTracking(onFirstVisit, onLocationChange);
+
+    return () => {
+      stopBackgroundLocationTracking();
+    };
   }, []);
 
   useEffect(() => {
@@ -119,6 +137,7 @@ const App = () => {
     );
     try {
       await fetchSpots();
+
       console.log('Background fetch task completed successfully');
       return BackgroundFetch.BackgroundFetchResult.NewData;
     } catch (err) {
