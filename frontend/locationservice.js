@@ -8,9 +8,9 @@ let firstVisit = false;
 // Define the geofence coordinates and radius
 // Karaportti 2: 60.224185, 24.758153
 export const geofence = {
-  latitude: 60.237074,
-  longitude: 24.820085,
-  radius: 250, // 250m
+  latitude: 60.224185,
+  longitude: 24.758153,
+  radius: 1000, // 1km
 };
 
 // Check user's location, compare to geofence
@@ -46,6 +46,15 @@ const handleUserLocation = async (coords, onFirstVisit, setIsInside) => {
     schedulePushNotification();
   } else {
     console.log('User is outside the specific area');
+    console.log(
+      'DISTANCE: ' +
+        calculateDistance(
+          coords.latitude,
+          coords.longitude,
+          geofence.latitude,
+          geofence.longitude,
+        ),
+    );
     setIsInside(false);
     firstVisit = true;
   }
@@ -57,8 +66,8 @@ const handleUserLocationTask = async (
   setIsInside,
 ) => {
   locations.forEach((location) => {
-    const isInsideGeofence = isInsideGeofence(location.coords, geofence);
-    if (isInsideGeofence && firstVisit) {
+    const isInside = isInsideGeofence(location.coords, geofence);
+    if (isInside && firstVisit) {
       console.log('User is inside the specific area for the first time');
       console.log(
         'DISTANCE: ' +
@@ -73,7 +82,7 @@ const handleUserLocationTask = async (
       setIsInside(true);
       onFirstVisit();
       schedulePushNotification();
-    } else if (isInsideGeofence) {
+    } else if (isInside) {
       console.log('User is inside the specific area');
       console.log(
         'DISTANCE: ' +
@@ -93,7 +102,6 @@ const handleUserLocationTask = async (
     }
   });
 };
-
 // Function to check if the user's location is inside the geofence
 export const isInsideGeofence = (userCoords, geofence) => {
   const distance = calculateDistance(
@@ -147,6 +155,7 @@ const requestBackgroundLocationPermissionsWithTimeout = async (timeout) => {
 export const startBackgroundLocationTracking = async (
   onFirstVisit,
   setIsInside,
+  setUserLocation,
 ) => {
   const {status: foregroundStatus} =
     await Location.requestForegroundPermissionsAsync();
@@ -171,6 +180,10 @@ export const startBackgroundLocationTracking = async (
       },
       (location) => {
         handleUserLocation(location.coords, onFirstVisit, setIsInside);
+        setUserLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
       },
     );
   }

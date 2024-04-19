@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Modal, Button} from 'react-native';
-import MapView, {Marker} from 'react-native-maps'; // Import MapView and Marker
-import {LogBox} from 'react-native';
+import MapView, {Marker, Circle} from 'react-native-maps'; // Import MapView and Marker
 import * as Notifications from 'expo-notifications';
 import {initializeApp} from 'firebase/app';
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -14,10 +13,8 @@ import {
 import {
   startBackgroundLocationTracking,
   stopBackgroundLocationTracking,
+  geofence,
 } from './frontend/locationservice';
-
-LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
-LogBox.ignoreAllLogs(); // Ignore all log notifications
 
 initializeApp(firebaseConfig);
 
@@ -25,6 +22,7 @@ const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
   const [isInside, setIsInside] = useState(false);
 
   useEffect(() => {
@@ -50,7 +48,8 @@ const App = () => {
       console.log('Trigger push notification');
       await fetchSpots();
     };
-    startBackgroundLocationTracking(onFirstVisit);
+
+    startBackgroundLocationTracking(onFirstVisit, setIsInside, setUserLocation);
 
     return () => {
       stopBackgroundLocationTracking();
@@ -118,7 +117,11 @@ const App = () => {
       setIsInside(isInsideGeofence);
     };
 
-    startBackgroundLocationTracking(onFirstVisit, onLocationChange);
+    startBackgroundLocationTracking(
+      onFirstVisit,
+      onLocationChange,
+      setUserLocation,
+    );
 
     return () => {
       stopBackgroundLocationTracking();
@@ -133,6 +136,7 @@ const App = () => {
     );
     return () => subscription.remove();
   }, []);
+
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
@@ -175,7 +179,7 @@ const App = () => {
             />
           </View>
           <View>
-            {location && (
+            {geofence && (
               <View
                 style={{
                   justifyContent: 'center',
@@ -186,25 +190,58 @@ const App = () => {
                 <MapView
                   style={{width: 450, height: 450}}
                   initialRegion={{
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
+                    latitude: userLocation
+                      ? userLocation.latitude
+                      : geofence.latitude,
+                    longitude: userLocation
+                      ? userLocation.longitude
+                      : geofence.longitude,
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                   }}
                   region={{
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
+                    latitude: userLocation
+                      ? userLocation.latitude
+                      : geofence.latitude,
+                    longitude: userLocation
+                      ? userLocation.longitude
+                      : geofence.longitude,
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                   }}
                 >
                   <Marker
                     coordinate={{
-                      latitude: location.coords.latitude,
-                      longitude: location.coords.longitude,
+                      latitude: userLocation
+                        ? userLocation.latitude
+                        : geofence.latitude,
+                      longitude: userLocation
+                        ? userLocation.longitude
+                        : geofence.longitude,
                     }}
                     title="My Location"
-                  />
+                  >
+                    <View style={{padding: 10}}>
+                      <Text style={{fontSize: 40}}>📍</Text>
+                    </View>
+                  </Marker>
+                  <Marker
+                    coordinate={{
+                      latitude: geofence.latitude,
+                      longitude: geofence.longitude,
+                    }}
+                    title="Target Location"
+                  >
+                    <View style={{padding: 10}}>
+                      <Text style={{fontSize: 40}}>📍</Text>
+                    </View>
+                  </Marker>
+                  <Circle
+    center={geofence}
+    radius={geofence.radius}
+    strokeColor="rgba(255,0,0,1)"
+    fillColor="rgba(255,0,0,0.3)"
+  />
                 </MapView>
               </View>
             )}
