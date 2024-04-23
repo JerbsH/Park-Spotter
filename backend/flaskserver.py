@@ -1,5 +1,6 @@
 import logging
-from flask import Flask, jsonify, request
+import subprocess
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 
@@ -10,6 +11,25 @@ except ImportError:
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/')
+def index():
+    """
+    Renders the index.html template.
+    """
+    return render_template('index.html')
+
+@app.route('/run-opencv')
+def run_opencv():
+    """
+    Executes the opencv.py script.
+    """
+    try:
+        # Execute the opencv.py script
+        subprocess.run(['python', 'opencv.py'], check=True)
+        return 'Success', 200
+    except Exception as e:
+        return str(e), 500
 
 logging.basicConfig(level=logging.INFO)
 @app.route('/register', methods=['POST'])

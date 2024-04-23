@@ -44,9 +44,14 @@ button{
 button:hover{
   background-color: rgb(237, 164, 255);
 }
-input#number{
+input#number1{
   text-align: center;
-  width: 20%;
+  width: 30%;
+  border-radius: 15px;
+}
+input#number2{
+  text-align: center;
+  width: 30%;
   border-radius: 15px;
 }
 input#imagePicker{
