@@ -5,6 +5,9 @@ yolov5m.pt
 yolov5s.pt
 yolov5x6.pt
 
+# firebase config
+/frontend/config.js
+
 # env
 .env
 

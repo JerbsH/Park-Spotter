@@ -4,18 +4,26 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "set EXPO_TUNNEL_TIMEOUT=30 && expo start --tunnel",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "android": " npx expo start --android",
+    "ios": " npx expo start --ios",
+    "web": " npx expo start --web"
   },
   "dependencies": {
     "@babel/eslint-parser": "^7.24.1",
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "eslint-plugin-react-native": "^4.1.0",
     "expo": "~50.0.14",
+    "expo-background-fetch": "^11.8.1",
+    "expo-device": "^5.9.3",
+    "expo-location": "~16.5.5",
+    "expo-notifications": "^0.27.6",
     "expo-status-bar": "~1.11.1",
+    "expo-task-manager": "^11.7.2",
+    "firebase": "^10.11.0",
     "react": "18.2.0",
     "react-native": "0.73.6",
-    "react-native-dotenv": "^3.4.11"
+    "react-native-dotenv": "^3.4.11",
+    "react-native-maps": "1.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

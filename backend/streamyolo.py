@@ -6,6 +6,7 @@ import os
 import time
 import logging
 import pickle
+import threading
 import cv2
 import torch
 import numpy as np
@@ -23,51 +24,61 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-try:
-    MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
-except IOError as e:
-    logging.error("Error loading model: %s", e)
-    os._exit(1)
-
 VEHICLE_CLASSES = {2, 3, 7}  # Car, motorcycle, truck
-
-try:
-    VIDEO_PATH = os.getenv('SECURE_URL')
-    cap = cv2.VideoCapture(VIDEO_PATH)
-    if not cap.isOpened():
-        raise ValueError("Could not open video file.")
-except ValueError as e:
-    logging.error("Error opening video file: %s", e)
-    os._exit(1)
-
-logging.info(
-    "Video size: %sx%s",
-    cap.get(cv2.CAP_PROP_FRAME_WIDTH),
-    cap.get(cv2.CAP_PROP_FRAME_HEIGHT),
-)
-logging.info("Frame rate: %s", cap.get(cv2.CAP_PROP_FPS))
-
+MODEL = None
+CAPTURE = None
+POINTS = None
 NORMAL_POINTS = []
 HANDICAP_POINTS = []
 
-try:
-    with open("./backend/carSpots2.pkl", "rb") as file:
-        POINTS = pickle.load(file)
-        for point_group, is_handicap in POINTS:
-            if is_handicap:
-                HANDICAP_POINTS.append(point_group)
-            else:
-                NORMAL_POINTS.append(point_group)
-except (FileNotFoundError, pickle.PickleError) as e:
-    logging.error("Error loading points: %s", e)
-    os._exit(1)
+def load_resources():
+    """
+    Load the model, video feed, and pickle file.
+    """
+    global MODEL, CAPTURE, POINTS, NORMAL_POINTS, HANDICAP_POINTS
+    try:
+        MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
+    except IOError as e:
+        logging.error("Error loading model: %s", e)
+        os._exit(1)
+
+    try:
+        video_path = os.getenv('SECURE_URL')
+        CAPTURE = cv2.VideoCapture(video_path)
+        if not CAPTURE.isOpened():
+            raise ValueError("Could not open video file.")
+    except ValueError as e:
+        logging.error("Error opening video file: %s", e)
+        os._exit(1)
+
+    try:
+        with open("./backend/carSpots2.pkl", "rb") as file:
+            POINTS = pickle.load(file)
+            for point_group, is_handicap in POINTS:
+                if is_handicap:
+                    HANDICAP_POINTS.append(point_group)
+                else:
+                    NORMAL_POINTS.append(point_group)
+    except (FileNotFoundError, pickle.PickleError) as e:
+        logging.error("Error loading points: %s", e)
+        os._exit(1)
+
 
 # Create numpy arrays and calculate centroids for normal and handicap spots
 NORMAL_POINTS_NP = [np.array(point_group) for point_group in NORMAL_POINTS]
 HANDICAP_POINTS_NP = [np.array(point_group) for point_group in HANDICAP_POINTS]
 
 def calculate_centroids(points_np):
-    return [(int(np.mean(point_group[:, 0])), int(np.mean(point_group[:, 1]))) for point_group in points_np]
+    """
+    Calculate the centroids of the points.
+    """
+    return [
+        (
+            int(np.mean(point_group[:, 0])),
+            int(np.mean(point_group[:, 1]))
+        )
+        for point_group in points_np
+    ]
 
 NORMAL_ANNOTATED_CENTROIDS = calculate_centroids(NORMAL_POINTS_NP)
 HANDICAP_ANNOTATED_CENTROIDS = calculate_centroids(HANDICAP_POINTS_NP)
@@ -119,8 +130,8 @@ def main():
     frame_interval = 10
     last_frame_time = time.time()
 
-    while cap.isOpened():
-        ret, frame = cap.read()
+    while CAPTURE.isOpened():
+        ret, frame = CAPTURE.read()
         if not ret:
             break
 
@@ -168,7 +179,13 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-    cap.release()
+    CAPTURE.release()
 
 if __name__ == "__main__":
+    # Load resources in a separate thread
+    resources_thread = threading.Thread(target=load_resources)
+    resources_thread.start()
+    # Wait for the resources to load before running main
+    resources_thread.join()
+    # main runs in the main thread
     main()
