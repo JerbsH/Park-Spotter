@@ -12,10 +12,12 @@ import torch
 import numpy as np
 from dotenv import load_dotenv
 from database import (
-    fetch_available_spots,
-    store_free_spots,
+    fetch_available_free_spots,
+    save_available_free_spots,
     fetch_available_handicap_spots,
-    store_free_handicap_spots
+    save_available_handicap_spots,
+    fetch_total_handicap_spots,
+    fetch_total_spots,
 )
 
 sys.path.insert(0, './backend')
@@ -158,14 +160,14 @@ def main():
                             total_handicap_cars += 1
 
             # Calculate the number of free normal spots and free handicap spots
-            total_normal_spots = 6
-            total_handicap_spots = 2
+            total_normal_spots = fetch_total_spots()
+            total_handicap_spots = fetch_total_handicap_spots()
             free_normal_spots = total_normal_spots - total_normal_cars
             free_handicap_spots = total_handicap_spots - total_handicap_cars
-            store_free_spots(free_normal_spots)
-            store_free_handicap_spots(free_handicap_spots)
+            save_available_free_spots(free_normal_spots)
+            save_available_handicap_spots(free_handicap_spots)
 
-            available_normal_spots = fetch_available_spots()
+            available_normal_spots = fetch_available_free_spots()
             available_handicap_spots = fetch_available_handicap_spots()
             # Log the information
             logging.info("Total normal parking spots: %s", total_normal_spots)
