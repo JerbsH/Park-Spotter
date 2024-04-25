@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Modal, Button} from 'react-native';
-import MapView, {Marker, Circle} from 'react-native-maps'; // Import MapView and Marker
+import MapView, {Marker, Circle} from 'react-native-maps';
 import * as Notifications from 'expo-notifications';
 import {initializeApp} from 'firebase/app';
 import * as BackgroundFetch from 'expo-background-fetch';

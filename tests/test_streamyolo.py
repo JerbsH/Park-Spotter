@@ -7,10 +7,12 @@ import sys
 import time
 import threading
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+import numpy as np
 import cv2
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 sys.modules['database'] = Mock()
+import backend.streamyolo as streamyolo
 from backend.streamyolo import boxes_overlap
 
 
@@ -77,6 +79,48 @@ class TestStreamYolo(unittest.TestCase):
         box1 = [0, 0, 2, 2]
         box2 = [0, 0, 2, 1]
         self.assertTrue(boxes_overlap(box1, box2))
+
+    @patch('backend.streamyolo.torch.hub.load')
+    @patch('backend.streamyolo.cv2.VideoCapture')
+    @patch('backend.streamyolo.pickle.load')
+    def test_load_resources(self, mock_pickle_load, mock_video_capture, mock_torch_load):
+        """
+        This method tests the load_resources function.
+        """
+        mock_torch_load.return_value = 'dummy_model'
+        mock_video_capture.return_value.isOpened.return_value = True
+        mock_pickle_load.return_value = [('dummy_point_group', 'dummy_is_handicap')]
+
+        streamyolo.load_resources()
+
+        self.assertEqual(streamyolo.MODEL, 'dummy_model')
+        self.assertTrue(streamyolo.CAPTURE.isOpened())
+        self.assertEqual(streamyolo.POINTS, [('dummy_point_group', 'dummy_is_handicap')])
+
+    def test_calculate_centroids(self):
+        """
+        This method tests the calculate_centroids function.
+        """
+        dummy_data = [np.array([[0, 0], [10, 10]]), np.array([[10, 10], [20, 20]])]
+        expected_centroids = [(5, 5), (15, 15)]
+
+        actual_centroids = streamyolo.calculate_centroids(dummy_data)
+
+        self.assertEqual(actual_centroids, expected_centroids)
+
+    @patch('backend.streamyolo.cv2.pointPolygonTest')
+    def test_box_in_regions(self, mock_point_polygon_test):
+        """
+        This method tests the box_in_regions function.
+        """
+        dummy_box = (5, 5, 15, 15)
+        dummy_regions = [np.array([[0, 0], [10, 10]]), np.array([[10, 10], [20, 20]])]
+        expected_result = [True, True]
+        mock_point_polygon_test.return_value = 1
+
+        actual_result = [streamyolo.box_in_regions(dummy_box, region) for region in dummy_regions]
+
+        self.assertEqual(actual_result, expected_result)
 
 if __name__ == '__main__':
     unittest.main()

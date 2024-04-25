@@ -26,7 +26,7 @@ class FlaskServerTestCase(unittest.TestCase):
         """
         Test getting free spots with a negative number.
         """
-        with patch('backend.database.fetch_available_spots', return_value=-1):
+        with patch('backend.database.fetch_available_free_spots', return_value=-1):
             response = self.app.get('/free_spots')
             self.assertEqual(response.status_code, 500)
 
@@ -34,7 +34,7 @@ class FlaskServerTestCase(unittest.TestCase):
         """
         Test getting free spots with a non-integer value.
         """
-        with patch('backend.database.fetch_available_spots', return_value='ten'):
+        with patch('backend.database.fetch_available_free_spots', return_value='ten'):
             response = self.app.get('/free_spots')
             self.assertEqual(response.status_code, 500)
 
@@ -42,7 +42,7 @@ class FlaskServerTestCase(unittest.TestCase):
         """
         Test getting free spots with a None value.
         """
-        with patch('backend.database.fetch_available_spots', return_value=None):
+        with patch('backend.database.fetch_available_free_spots', return_value=None):
             response = self.app.get('/free_spots')
             self.assertEqual(response.status_code, 500)
 
@@ -51,7 +51,7 @@ class FlaskServerTestCase(unittest.TestCase):
         Test getting free spots when an exception is raised.
         """
         with patch(
-            'backend.database.fetch_available_spots',
+            'backend.database.fetch_available_free_spots',
             side_effect=Exception('Database error')
         ):
             response = self.app.get('/free_spots')
