@@ -66,7 +66,7 @@ def save_token(token):
     print("Token saved successfully")
     return 0
 
-def fetch_available_spots():
+def fetch_available_free_spots():
     """Fetches the available parking spots from the database."""
     cnx = connect_to_db()
     if cnx is None:
@@ -88,6 +88,22 @@ def fetch_available_spots():
 
     print("No available spots found")
     return 0
+
+def save_available_free_spots(free_spots):
+    """Stores the number of free parking spots in the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return
+
+    try:
+        cursor = cnx.cursor()
+        query = "UPDATE AVAILABLE_SPOTS SET PARKSPOTS = %s WHERE id = %s"
+        cursor.execute(query, (free_spots, 1))
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
 
 def fetch_available_handicap_spots():
     """Fetches the available handicap parking spots from the database."""
@@ -111,23 +127,7 @@ def fetch_available_handicap_spots():
     print("No available handicap spots found")
     return 0
 
-def store_free_spots(free_spots):
-    """Stores the number of free parking spots in the database."""
-    cnx = connect_to_db()
-    if cnx is None:
-        return
-
-    try:
-        cursor = cnx.cursor()
-        query = "UPDATE AVAILABLE_SPOTS SET PARKSPOTS = %s WHERE id = %s"
-        cursor.execute(query, (free_spots, 1))
-        cnx.commit()
-    except mysql.connector.Error as err:
-        print(f"Something went wrong: {err}")
-    finally:
-        cnx.close()
-
-def store_free_handicap_spots(free_spots):
+def save_available_handicap_spots(free_handicap_spots):
     """Stores the number of free handicap parking spots in the database."""
     cnx = connect_to_db()
     if cnx is None:
@@ -136,7 +136,123 @@ def store_free_handicap_spots(free_spots):
     try:
         cursor = cnx.cursor()
         query = "UPDATE AVAILABLE_SPOTS SET HANDICAPSPOTS = %s WHERE id = %s"
-        cursor.execute(query, (free_spots, 1))
+        cursor.execute(query, (free_handicap_spots, 1))
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+
+def fetch_total_handicap_spots():
+    """Fetches the total handicap parking spots from the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return 0
+
+    try:
+        cursor = cnx.cursor()
+        query = "SELECT TOTALHANDICAPSPOTS FROM AVAILABLE_SPOTS"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is not None:
+            print(f"Fetched total handicap spots:{result[0]}")  # Debugging print statement
+            return result[0]
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+    print("No total handicap spots found")
+    return 0
+
+def save_total_handicap_spots(total_handicap_spots):
+    """Saves the total handicap parking spots to the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return
+
+    try:
+        cursor = cnx.cursor()
+        query = "UPDATE AVAILABLE_SPOTS SET TOTALHANDICAPSPOTS = %s WHERE id = %s"
+        cursor.execute(query, (total_handicap_spots, 1))
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+
+def fetch_total_spots():
+    """Fetches the total parking spots from the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return 0
+
+    try:
+        cursor = cnx.cursor()
+        query = "SELECT TOTALSPOTS FROM AVAILABLE_SPOTS"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is not None:
+            print(f"Fetched total spots:{result[0]}")  # Debugging print statement
+            return result[0]
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+    print("No total spots found")
+    return 0
+
+def save_total_spots(total_spots):
+    """Saves the total parking spots to the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return
+
+    try:
+        cursor = cnx.cursor()
+        query = "UPDATE AVAILABLE_SPOTS SET TOTALSPOTS = %s WHERE id = %s"
+        cursor.execute(query, (total_spots, 1))
+        cnx.commit()
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+def fetch_image():
+    """Fetches the image path from the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return 0
+
+    try:
+        cursor = cnx.cursor()
+        query = "SELECT IMAGE FROM AVAILABLE_SPOTS"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is not None:
+            print(f"Fetched image path:{result[0]}")  # Debugging print statement
+            return result[0]
+    except mysql.connector.Error as err:
+        print(f"Something went wrong: {err}")
+    finally:
+        cnx.close()
+
+    print("No image path found")
+    return 0
+
+def save_image(image_path):
+    """Saves the image path to the database."""
+    cnx = connect_to_db()
+    if cnx is None:
+        return
+
+    try:
+        cursor = cnx.cursor()
+        query = "UPDATE AVAILABLE_SPOTS SET IMAGE = %s WHERE id = %s"
+        cursor.execute(query, (image_path, 1))
         cnx.commit()
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
