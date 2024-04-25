@@ -237,11 +237,11 @@ const App = () => {
                     </View>
                   </Marker>
                   <Circle
-    center={geofence}
-    radius={geofence.radius}
-    strokeColor="rgba(255,0,0,1)"
-    fillColor="rgba(255,0,0,0.3)"
-  />
+                    center={geofence}
+                    radius={geofence.radius}
+                    strokeColor="rgba(255,0,0,1)"
+                    fillColor="rgba(255,0,0,0.3)"
+                  />
                 </MapView>
               </View>
             )}
