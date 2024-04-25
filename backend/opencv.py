@@ -12,9 +12,9 @@ import numpy as np
 CURRENT_POINTS = []
 IS_DRAWING = False
 IS_HANDICAP = False
-
+# code
 # Load and resize the image
-IMAGE_PATH = "./backend/source/jerenKoti.png"
+IMAGE_PATH = "./backend/source/koulu1.png"
 
 try:
     IMAGE = cv2.imread(IMAGE_PATH)
