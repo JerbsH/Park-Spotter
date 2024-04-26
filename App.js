@@ -1,6 +1,6 @@
-import {useState, useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
-import {LogBox} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, Modal, Button} from 'react-native';
+import MapView, {Marker, Circle} from 'react-native-maps';
 import * as Notifications from 'expo-notifications';
 import {initializeApp} from 'firebase/app';
 import * as BackgroundFetch from 'expo-background-fetch';
@@ -10,36 +10,53 @@ import {
   schedulePushNotification,
   registerForPushNotificationsAsync,
 } from './frontend/notifications';
-
-LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
-LogBox.ignoreAllLogs(); // Ignore all log notifications
+import {
+  startBackgroundLocationTracking,
+  stopBackgroundLocationTracking,
+  geofence,
+} from './frontend/locationservice';
 
 initializeApp(firebaseConfig);
-
+// test comment
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
-  // const response = Notifications.useLastNotificationResponse();
-  // test comment for pushing
+  const [modalVisible, setModalVisible] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [isInside, setIsInside] = useState(false);
+
+  useEffect(() => {
+    const registerToken = async () => {
+      const expoPushToken = await registerForPushNotificationsAsync();
+
+      fetch(`${process.env.REACT_SERVER_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: expoPushToken,
+        }),
+      });
+    };
+
+    registerToken();
+  }, []);
+
+  useEffect(() => {
+    const onFirstVisit = async () => {
+      console.log('Trigger push notification');
+      await fetchSpots();
+    };
+
+    startBackgroundLocationTracking(onFirstVisit, setIsInside, setUserLocation);
+
+    return () => {
+      stopBackgroundLocationTracking();
+    };
+  }, []);
+
   const fetchSpots = async () => {
-    const expoPushToken = await registerForPushNotificationsAsync();
-
-    // Register the background fetch task on component mount
-    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 1, // 1 seconds
-    });
-    console.log('Background fetch task registered');
-
-    fetch(`${process.env.REACT_SERVER_URL}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: expoPushToken,
-      }),
-    });
-
     let spots = 0;
     let handicapSpots = 0;
 
@@ -59,7 +76,6 @@ const App = () => {
     await fetch(`${process.env.REACT_HANDICAP_PARKINGSPOTS_URL}`)
       .then((response) => response.text()) // Get response text
       .then((text) => {
-        console.log('Raw response:', text);
         return JSON.parse(text); // Parse the text as JSON
       })
       .then((data) => {
@@ -72,13 +88,44 @@ const App = () => {
 
     setSpots(spots);
     setHandicapSpots(handicapSpots);
-    await schedulePushNotification(spots, handicapSpots);
+
+    if (isInside) {
+      await schedulePushNotification(spots, handicapSpots);
+    }
   };
 
   useEffect(() => {
-    fetchSpots(); // Fetch immediately on component mount
-    const timerId = setInterval(fetchSpots, 10000);
-    return () => clearInterval(timerId); // Clean up the timer
+    fetchSpots();
+    // Register the background fetch task on component mount
+    BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
+      minimumInterval: 1, // 1 seconds
+    });
+    console.log('Background fetch task registered');
+    // Fetch every 10 seconds
+    const intervalId = setInterval(fetchSpots, 10000);
+
+    // Clear interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const onFirstVisit = () => {
+      fetchSpots();
+    };
+
+    const onLocationChange = (isInsideGeofence) => {
+      setIsInside(isInsideGeofence);
+    };
+
+    startBackgroundLocationTracking(
+      onFirstVisit,
+      onLocationChange,
+      setUserLocation,
+    );
+
+    return () => {
+      stopBackgroundLocationTracking();
+    };
   }, []);
 
   useEffect(() => {
@@ -90,12 +137,6 @@ const App = () => {
     return () => subscription.remove();
   }, []);
 
- /* useEffect(() => {
-    if (response) {
-      console.log(response.notification);
-    }
-  }, [response]);*/
-
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
@@ -105,6 +146,7 @@ const App = () => {
     );
     try {
       await fetchSpots();
+
       console.log('Background fetch task completed successfully');
       return BackgroundFetch.BackgroundFetchResult.NewData;
     } catch (err) {
@@ -115,22 +157,122 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        Parking Spot Availability at Karaportti 2:
-      </Text>
-      <Text style={styles.spots}>{spots}</Text>
-      <Text style={styles.subtitle}>Available Spots</Text>
-      <Text style={styles.spots}>{handicapSpots}</Text>
-      <Text style={styles.subtitle}>Available Handicap Spots</Text>
+      <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
+        <Button
+          title={modalVisible ? 'Hide Map' : 'Show Map'}
+          onPress={() => setModalVisible(!modalVisible)}
+        />
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={{marginTop: 22}}>
+          <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
+            <Button
+              title={modalVisible ? 'Hide Map' : 'Show Map'}
+              onPress={() => setModalVisible(!modalVisible)}
+            />
+          </View>
+          <View>
+            {geofence && (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: 20,
+                }}
+              >
+                <MapView
+                  style={{width: 450, height: 450}}
+                  initialRegion={{
+                    latitude: userLocation
+                      ? userLocation.latitude
+                      : geofence.latitude,
+                    longitude: userLocation
+                      ? userLocation.longitude
+                      : geofence.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                  region={{
+                    latitude: userLocation
+                      ? userLocation.latitude
+                      : geofence.latitude,
+                    longitude: userLocation
+                      ? userLocation.longitude
+                      : geofence.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                  }}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: userLocation
+                        ? userLocation.latitude
+                        : geofence.latitude,
+                      longitude: userLocation
+                        ? userLocation.longitude
+                        : geofence.longitude,
+                    }}
+                    title="My Location"
+                  >
+                    <View style={{padding: 10}}>
+                      <Text style={{fontSize: 40}}>📍</Text>
+                    </View>
+                  </Marker>
+                  <Marker
+                    coordinate={{
+                      latitude: geofence.latitude,
+                      longitude: geofence.longitude,
+                    }}
+                    title="Target Location"
+                  >
+                    <View style={{padding: 10}}>
+                      <Text style={{fontSize: 40}}>📍</Text>
+                    </View>
+                  </Marker>
+                  <Circle
+                    center={geofence}
+                    radius={geofence.radius}
+                    strokeColor="rgba(255,0,0,1)"
+                    fillColor="rgba(255,0,0,0.3)"
+                  />
+                </MapView>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+      <View style={styles.overlay}>
+        <Text style={styles.title}>
+          Parking Spot Availability at Karaportti 2:
+        </Text>
+        <Text style={styles.spots}>{spots}</Text>
+        <Text style={styles.subtitle}>Available Spots</Text>
+        <Text style={styles.spots}>{handicapSpots}</Text>
+        <Text style={styles.subtitle}>Available Handicap Spots</Text>
+      </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5FCFF',
-    alignItems: 'center',
+  },
+  map: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 30,

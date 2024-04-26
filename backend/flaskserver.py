@@ -3,9 +3,8 @@ import subprocess
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
-
 try:
-    from database import fetch_available_spots, fetch_available_handicap_spots, save_token
+    from database import fetch_available_free_spots, fetch_available_handicap_spots, save_token
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
@@ -54,7 +53,7 @@ def get_free_spots():
     This function fetches the number of available parking spots and returns it as a JSON response.
     """
     try:
-        free_spots = fetch_available_spots()
+        free_spots = fetch_available_free_spots()
         if not isinstance(free_spots, int) or free_spots < 0:
             raise ValueError("Invalid number of free spots")
         return jsonify({'free_spots': free_spots}), 200

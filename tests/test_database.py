@@ -9,14 +9,18 @@ from unittest.mock import MagicMock
 import mysql.connector
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Importing the required functions from backend.database
+# required functions from backend.database
 from backend.database import (
-    fetch_available_spots,
+    fetch_available_free_spots,
     fetch_available_handicap_spots,
-    store_free_spots,
-    store_free_handicap_spots,
+    save_available_free_spots,
+    save_available_handicap_spots,
     fetch_token,
-    save_token
+    save_token,
+    fetch_image,
+    save_image,
+    fetch_total_spots,
+    save_total_spots
 )
 
 class TestDatabase(unittest.TestCase):
@@ -120,9 +124,8 @@ class TestDatabase(unittest.TestCase):
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
 
-        # Replace the actual database connection with the mock connection
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
-            result = fetch_available_spots()
+            result = fetch_available_free_spots()
 
         self.assertEqual(result, 5)
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
@@ -138,7 +141,7 @@ class TestDatabase(unittest.TestCase):
         mock_cnx.cursor.return_value = mock_cursor
 
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
-            result = fetch_available_spots()
+            result = fetch_available_free_spots()
 
         self.assertEqual(result, 0)
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
@@ -155,23 +158,22 @@ class TestDatabase(unittest.TestCase):
 
         # Replace the actual database connection with the mock connection
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
-            result = fetch_available_spots()
+            result = fetch_available_free_spots()
 
         self.assertEqual(result, {'error': 'Unknown error'})
         mock_cursor.execute.assert_called_once_with("SELECT PARKSPOTS FROM AVAILABLE_SPOTS")
         mock_cnx.close.assert_called_once()
 
-    def test_store_free_spots(self):
+    def test_save_free_spots(self):
         """
-        Test case for store_free_spots.
+        Test case for saving free spots.
         """
         mock_cursor = MagicMock()
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
 
-        # Replace the actual database connection with the mock connection
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
-            store_free_spots(5)
+            save_available_free_spots(5)
 
         query = "UPDATE AVAILABLE_SPOTS SET PARKSPOTS = %s WHERE id = %s"
         mock_cursor.execute.assert_called_once_with(query, (5, 1))
@@ -194,19 +196,83 @@ class TestDatabase(unittest.TestCase):
         mock_cursor.execute.assert_called_once_with("SELECT HANDICAPSPOTS FROM AVAILABLE_SPOTS")
         mock_cnx.close.assert_called_once()
 
-    def test_store_free_handicap_spots(self):
+    def test_save_free_handicap_spots(self):
         """
-        Test case for store_free_handicap_spots.
+        Test case for saving free handicap spots.
         """
         mock_cursor = MagicMock()
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
 
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
-            store_free_handicap_spots(3)
+            save_available_handicap_spots(3)
 
         query = "UPDATE AVAILABLE_SPOTS SET HANDICAPSPOTS = %s WHERE id = %s"
         mock_cursor.execute.assert_called_once_with(query, (3, 1))
+        mock_cnx.commit.assert_called_once()
+        mock_cnx.close.assert_called_once()
+
+    def test_fetch_image(self):
+        """
+        Test case for fetch_image.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = ("image_path",)
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = fetch_image()
+
+        self.assertEqual(result, "image_path")
+        mock_cursor.execute.assert_called_once_with("SELECT IMAGE FROM AVAILABLE_SPOTS")
+        mock_cnx.close.assert_called_once()
+
+    def test_save_image(self):
+        """
+        Test case for save_image.
+        """
+        mock_cursor = MagicMock()
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            save_image("image_path")
+
+        query = "UPDATE AVAILABLE_SPOTS SET IMAGE = %s WHERE id = %s"
+        mock_cursor.execute.assert_called_once_with(query, ("image_path", 1))
+        mock_cnx.commit.assert_called_once()
+        mock_cnx.close.assert_called_once()
+
+    def test_fetch_total_spots(self):
+        """
+        Test case for fetch_total_spots.
+        """
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = (10,)
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            result = fetch_total_spots()
+
+        self.assertEqual(result, 10)
+        mock_cursor.execute.assert_called_once_with("SELECT TOTALSPOTS FROM AVAILABLE_SPOTS")
+        mock_cnx.close.assert_called_once()
+
+    def test_save_total_spots(self):
+        """
+        Test case for save_total_spots.
+        """
+        mock_cursor = MagicMock()
+        mock_cnx = MagicMock()
+        mock_cnx.cursor.return_value = mock_cursor
+
+        with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
+            save_total_spots(10)
+
+        query = "UPDATE AVAILABLE_SPOTS SET TOTALSPOTS = %s WHERE id = %s"
+        mock_cursor.execute.assert_called_once_with(query, (10, 1))
         mock_cnx.commit.assert_called_once()
         mock_cnx.close.assert_called_once()
 
