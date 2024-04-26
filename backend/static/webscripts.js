@@ -5,7 +5,7 @@ function sendData() {
   sessionStorage.setItem("parking", parking);
   sessionStorage.setItem("accPark", accPark);
 
-  window.location.href='draw.html';
+  window.location.href='./static/draw.html';
 }
 
 function showDraw() {
