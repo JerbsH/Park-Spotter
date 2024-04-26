@@ -1,5 +1,8 @@
 """
-This module is used for detecting vehicles in a video stream using YOLOv5 model.
+This module is used for streaming YOLO object detection model.
+It reads the video feed from the camera and detects vehicles in the feed.
+It then calculates the number of free normal and handicap parking spots based on the detected vehicles.
+The number of free parking spots is saved to the database.
 """
 import sys
 import os
@@ -29,15 +32,14 @@ logging.basicConfig(level=logging.INFO)
 VEHICLE_CLASSES = {2, 3, 7}  # Car, motorcycle, truck
 MODEL = None
 CAPTURE = None
-POINTS = None
-NORMAL_POINTS = []
-HANDICAP_POINTS = []
+NORMAL_POINTS_NP = []
+HANDICAP_POINTS_NP = []
 
 def load_resources():
     """
     Load the model, video feed, and pickle file.
     """
-    global MODEL, CAPTURE, POINTS, NORMAL_POINTS, HANDICAP_POINTS
+    global MODEL, CAPTURE, NORMAL_POINTS_NP, HANDICAP_POINTS_NP
     try:
         MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
     except IOError as e:
@@ -58,17 +60,16 @@ def load_resources():
             POINTS = pickle.load(file)
             for point_group, is_handicap in POINTS:
                 if is_handicap:
-                    HANDICAP_POINTS.append(point_group)
+                    HANDICAP_POINTS_NP.append(np.array(point_group))
                 else:
-                    NORMAL_POINTS.append(point_group)
+                    NORMAL_POINTS_NP.append(np.array(point_group))
     except (FileNotFoundError, pickle.PickleError) as e:
         logging.error("Error loading points: %s", e)
         os._exit(1)
 
-
-# Create numpy arrays and calculate centroids for normal and handicap spots
-NORMAL_POINTS_NP = [np.array(point_group) for point_group in NORMAL_POINTS]
-HANDICAP_POINTS_NP = [np.array(point_group) for point_group in HANDICAP_POINTS]
+    # Create numpy arrays and calculate centroids for normal and handicap spots
+    NORMAL_POINTS_NP[:] = [np.array(point_group) for point_group in NORMAL_POINTS_NP]
+    HANDICAP_POINTS_NP[:] = [np.array(point_group) for point_group in HANDICAP_POINTS_NP]
 
 def calculate_centroids(points_np):
     """
@@ -87,6 +88,14 @@ HANDICAP_ANNOTATED_CENTROIDS = calculate_centroids(HANDICAP_POINTS_NP)
 
 NORMAL_CENTROID_TO_POINTS = dict(zip(NORMAL_ANNOTATED_CENTROIDS, NORMAL_POINTS_NP))
 HANDICAP_CENTROID_TO_POINTS = dict(zip(HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_POINTS_NP))
+
+# test function to visually showing the if regions are drawn correctly
+"""def draw_polygons(image, points_np, color):
+
+    Draw polylines on the image based on the provided points.
+
+    for points in points_np:
+        cv2.polylines(image, [points], True, color, 2)"""
 
 def boxes_overlap(box1, box2):
     """
@@ -115,19 +124,23 @@ def boxes_overlap(box1, box2):
 
     return overlap_ratio >= 0.5  # Overlap if overlap ratio >= 0.5
 
-def box_in_regions(box, regions):
+def box_in_regions(box, normal_regions, handicap_regions):
     """
     Check if the centroid of a bounding box is within any of the specified regions.
     """
     box_centroid = (int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2))
-    for region in regions:
+    for region in normal_regions:
+        if cv2.pointPolygonTest(region, box_centroid, False) >= 0:
+            return True
+    for region in handicap_regions:
         if cv2.pointPolygonTest(region, box_centroid, False) >= 0:
             return True
     return False
 
+
 def main():
     """
-    main function for the program to run.
+    Main function for the program to run.
     """
     frame_interval = 10
     last_frame_time = time.time()
@@ -152,12 +165,12 @@ def main():
                 logging.info("Detected a %s with confidence %s", class_name, conf)
                 if class_id in VEHICLE_CLASSES and conf >= 0.4:
                     if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
-                        if box_in_regions(box, NORMAL_POINTS_NP):
+                        if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
                             detected_boxes.append(box)
-                            total_normal_cars += 1
-                        elif box_in_regions(box, HANDICAP_POINTS_NP):
-                            detected_boxes.append(box)
-                            total_handicap_cars += 1
+                            if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                total_normal_cars += 1  # Update count of detected normal cars
+                            else:
+                                total_handicap_cars += 1  # Update count of detected handicap cars
 
             # Calculate the number of free normal spots and free handicap spots
             total_normal_spots = fetch_total_spots()
@@ -178,6 +191,9 @@ def main():
             logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
+            # Draw polylines on the frame
+            #draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal spots
+            #draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap spots
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

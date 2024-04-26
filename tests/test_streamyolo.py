@@ -95,7 +95,6 @@ class TestStreamYolo(unittest.TestCase):
 
         self.assertEqual(streamyolo.MODEL, 'dummy_model')
         self.assertTrue(streamyolo.CAPTURE.isOpened())
-        self.assertEqual(streamyolo.POINTS, [('dummy_point_group', 'dummy_is_handicap')])
 
     def test_calculate_centroids(self):
         """
@@ -115,10 +114,11 @@ class TestStreamYolo(unittest.TestCase):
         """
         dummy_box = (5, 5, 15, 15)
         dummy_regions = [np.array([[0, 0], [10, 10]]), np.array([[10, 10], [20, 20]])]
+        dummy_handicap_regions = [np.array([[0, 0], [10, 10]])]
         expected_result = [True, True]
         mock_point_polygon_test.return_value = 1
 
-        actual_result = [streamyolo.box_in_regions(dummy_box, region) for region in dummy_regions]
+        actual_result = [streamyolo.box_in_regions(dummy_box, region, dummy_handicap_regions) for region in dummy_regions]  # Modify this line
 
         self.assertEqual(actual_result, expected_result)
 

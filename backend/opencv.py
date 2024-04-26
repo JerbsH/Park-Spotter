@@ -20,6 +20,8 @@ try:
     IMAGE = cv2.imread(IMAGE_PATH)
     if IMAGE is None:
         raise FileNotFoundError(f"Image not found at {IMAGE_PATH}")
+    print("Image size:", IMAGE.shape[1], "x", IMAGE.shape[0])  # Add this line
+
 except FileNotFoundError as e:
     print(f"Error loading image: {e}")
     sys.exit(1)
