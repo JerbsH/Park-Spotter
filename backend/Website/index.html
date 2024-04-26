@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Park-Spotter Setup</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="webscripts.js"></script>
+</head>
+<body>
+  <div id="main">
+    <h1>Park-Spotter</h1>
+    <p>Welcome to the Park-Spotter setup page.</p>
+    <p>Here you can add the picture of the parking area and add the parking areas to it.</p>
+    <p>Here you will also specify how much free space is on the parking area.</p>
+
+    <article>
+      <section>
+        <p>Picture of parking area:</p>
+        <input type="file" accept="image/*" id="imagePicker">
+      </section>
+      <section>
+        <p>Total parking spots:</p>
+        <input type="number" id="number1" placeholder="0" name="parking">
+      </section>
+      <section>
+        <p>Total accessible parking:</p>
+        <input type="number" id="number2" placeholder="0" name="accPark">
+      </section>
+      <button onclick="sendData()">Next</button>
+    </article>
+  </div>
+</body>
+</html>
