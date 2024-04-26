@@ -164,10 +164,8 @@ def main():
                 class_name = MODEL.names[class_id]
                 logging.info("Detected a %s with confidence %s", class_name, conf)
                 if class_id in VEHICLE_CLASSES and conf >= 0.4:
-                    logging.info("Detected box coordinates: %s", box)  # Log detected box coordinates
                     if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
                         if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
-                            logging.info("Box is in a region.")  # Log that the box is in a region
                             detected_boxes.append(box)
                             if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
                                 total_normal_cars += 1  # Update count of detected normal cars

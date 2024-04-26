@@ -17,7 +17,6 @@ import {
 } from './frontend/locationservice';
 
 initializeApp(firebaseConfig);
-// test comment
 const App = () => {
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
