@@ -15,7 +15,7 @@ import {
   stopBackgroundLocationTracking,
   geofence,
 } from './frontend/locationservice';
-
+// testcode
 initializeApp(firebaseConfig);
 const App = () => {
   const [spots, setSpots] = useState(0);
