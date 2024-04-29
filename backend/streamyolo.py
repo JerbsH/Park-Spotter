@@ -173,10 +173,8 @@ def main():
             detected_boxes = []
 
             # Draw polylines on the frame based on the points
-            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
-            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
-
-            frame = cv2.resize(frame, (1280, 720))
+            #draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
+            #draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
 
             # Extract relevant information from the results
             for result in results:
@@ -185,14 +183,13 @@ def main():
                     conf = detection.conf.item()
                     box = detection.xyxy.cpu().numpy()
                     if len(box) == 4:
-                        if class_id in VEHICLE_CLASSES and conf >= 0.25:
+                        if class_id in VEHICLE_CLASSES and conf >= 0.5:
                             if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
                                 detected_boxes.append(tuple(box))
                                 if box_in_regions(box, HANDICAP_POINTS_NP, NORMAL_POINTS_NP):
                                     total_normal_cars += 1
                                 elif box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
                                     total_handicap_cars += 1
-
 
             # Calculate available spots
             total_normal_spots = fetch_total_spots()
@@ -214,8 +211,8 @@ def main():
             logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-
-            cv2.imshow("Results", frame)
+            #reframe = cv2.resize(frame, (1280, 720))
+            #results = MODEL(reframe, show=True)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
