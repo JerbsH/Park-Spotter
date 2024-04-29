@@ -65,29 +65,30 @@ class TestStreamYolo(unittest.TestCase):
         box2 = [2, 2, 3, 3]
         self.assertFalse(boxes_overlap(box1, box2))
 
-        # Test case: boxes overlap but less than 50%
+        # Test case: boxes overlap but less than 80%
         box1 = [0, 0, 2, 2]
         box2 = [1, 1, 3, 3]
         self.assertFalse(boxes_overlap(box1, box2))
 
-        # Test case: boxes overlap by 50%
+        # Test case: boxes overlap by 80%
         box1 = [0, 0, 2, 2]
-        box2 = [1, 0, 3, 2]
+        box2 = [0, 0, 2, 1.6]
         self.assertTrue(boxes_overlap(box1, box2))
 
-        # Test case: boxes overlap more than 50%
+        # Test case: boxes overlap more than 80%
         box1 = [0, 0, 2, 2]
         box2 = [0, 0, 2, 1]
         self.assertTrue(boxes_overlap(box1, box2))
 
-    @patch('backend.streamyolo.torch.hub.load')
+
     @patch('backend.streamyolo.cv2.VideoCapture')
     @patch('backend.streamyolo.pickle.load')
-    def test_load_resources(self, mock_pickle_load, mock_video_capture, mock_torch_load):
+    @patch('backend.streamyolo.YOLO')
+    def test_load_resources(self, mock_yolo, mock_pickle_load, mock_video_capture):
         """
         This method tests the load_resources function.
         """
-        mock_torch_load.return_value = 'dummy_model'
+        mock_yolo.return_value = 'dummy_model'
         mock_video_capture.return_value.isOpened.return_value = True
         mock_pickle_load.return_value = [('dummy_point_group', 'dummy_is_handicap')]
 
@@ -118,7 +119,7 @@ class TestStreamYolo(unittest.TestCase):
         expected_result = [True, True]
         mock_point_polygon_test.return_value = 1
 
-        actual_result = [streamyolo.box_in_regions(dummy_box, region, dummy_handicap_regions) for region in dummy_regions]  # Modify this line
+        actual_result = [streamyolo.box_in_regions(dummy_box, region, dummy_handicap_regions) for region in dummy_regions]
 
         self.assertEqual(actual_result, expected_result)
 

@@ -4,12 +4,13 @@ Module for detecting parking spots using YOLOv5
 
 import pickle
 import torch
+from ultralytics import YOLO
 from PIL import Image
 import cv2
 import numpy as np
 
 # Load the YOLOv5 model
-MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
+MODEL = YOLO('yolov8x')
 
 # Load the saved image with the drawn regions
 IMAGE = Image.open("./backend/source/kouluparkki1.jpg")
@@ -74,7 +75,7 @@ for *box, conf, cls in RESULTS.xyxy[0]:
 
 # Print and display the results
 RESULTS.print()  # print results to console
-#RESULTS.show()  # display results
+RESULTS.show()  # display results
 
 # Calculate the number of free parking spots
 TOTAL_SPOTS = 27  # Total number of parking spots

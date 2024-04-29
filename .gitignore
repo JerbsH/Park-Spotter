@@ -4,6 +4,8 @@ yolov5l.pt
 yolov5m.pt
 yolov5s.pt
 yolov5x6.pt
+yolov8n.pt
+yolov8x.pt
 
 # firebase config
 /frontend/config.js

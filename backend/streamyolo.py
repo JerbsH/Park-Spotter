@@ -13,6 +13,7 @@ import threading
 import cv2
 import torch
 import numpy as np
+from ultralytics import YOLO
 from dotenv import load_dotenv
 from database import (
     fetch_available_free_spots,
@@ -41,7 +42,7 @@ def load_resources():
     """
     global MODEL, CAPTURE, NORMAL_POINTS_NP, HANDICAP_POINTS_NP
     try:
-        MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x', pretrained=True)
+        MODEL = YOLO("yolov8x.pt")
     except IOError as e:
         logging.error("Error loading model: %s", e)
         os._exit(1)
@@ -90,17 +91,20 @@ NORMAL_CENTROID_TO_POINTS = dict(zip(NORMAL_ANNOTATED_CENTROIDS, NORMAL_POINTS_N
 HANDICAP_CENTROID_TO_POINTS = dict(zip(HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_POINTS_NP))
 
 # test function to visually showing the if regions are drawn correctly
-"""def draw_polygons(image, points_np, color):
+def draw_polygons(image, points_np, color):
 
-    Draw polylines on the image based on the provided points.
+    #Draw polylines on the image based on the provided points.
 
     for points in points_np:
-        cv2.polylines(image, [points], True, color, 2)"""
+        cv2.polylines(image, [points], True, color, 2)
 
 def boxes_overlap(box1, box2):
     """
     This function checks if two boxes overlap.
     """
+    if len(box1) != 4 or len(box2) != 4:
+        return False
+
     x1, y1, x2, y2 = box1
     x3, y3, x4, y4 = box2
 
@@ -122,13 +126,23 @@ def boxes_overlap(box1, box2):
     # Calculate the overlap ratio
     overlap_ratio = intersection_area / min(area_box1, area_box2)
 
-    return overlap_ratio >= 0.5  # Overlap if overlap ratio >= 0.5
+    return overlap_ratio >= 0.8
 
 def box_in_regions(box, normal_regions, handicap_regions):
     """
     Check if the centroid of a bounding box is within any of the specified regions.
     """
-    box_centroid = (int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2))
+    # Ensure that the bounding box has the expected format
+    if len(box) != 4:
+        return False
+
+    # Extract box coordinates
+    x1, y1, x2, y2 = box
+
+    # Calculate the centroid of the bounding box
+    box_centroid = (int((x1 + x2) / 2), int((y1 + y2) / 2))
+
+    # Check if the centroid is within any of the specified regions
     for region in normal_regions:
         if cv2.pointPolygonTest(region, box_centroid, False) >= 0:
             return True
@@ -154,25 +168,33 @@ def main():
             last_frame_time = time.time()
 
             results = MODEL(frame)
-            results.print()
-
             total_normal_cars = 0
             total_handicap_cars = 0
             detected_boxes = []
-            for *box, conf, cls in results.xyxy[0]:
-                class_id = int(cls)
-                class_name = MODEL.names[class_id]
-                logging.info("Detected a %s with confidence %s", class_name, conf)
-                if class_id in VEHICLE_CLASSES and conf >= 0.4:
-                    if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
-                        if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
-                            detected_boxes.append(box)
-                            if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
-                                total_normal_cars += 1  # Update count of detected normal cars
-                            else:
-                                total_handicap_cars += 1  # Update count of detected handicap cars
 
-            # Calculate the number of free normal spots and free handicap spots
+            # Draw polylines on the frame based on the points
+            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
+            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
+
+            frame = cv2.resize(frame, (1280, 720))
+
+            # Extract relevant information from the results
+            for result in results:
+                for detection in result.boxes:
+                    class_id = detection.cls.item()
+                    conf = detection.conf.item()
+                    box = detection.xyxy.cpu().numpy()
+                    if len(box) == 4:
+                        if class_id in VEHICLE_CLASSES and conf >= 0.25:
+                            if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
+                                detected_boxes.append(tuple(box))
+                                if box_in_regions(box, HANDICAP_POINTS_NP, NORMAL_POINTS_NP):
+                                    total_normal_cars += 1
+                                elif box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                    total_handicap_cars += 1
+
+
+            # Calculate available spots
             total_normal_spots = fetch_total_spots()
             total_handicap_spots = fetch_total_handicap_spots()
             free_normal_spots = total_normal_spots - total_normal_cars
@@ -182,6 +204,7 @@ def main():
 
             available_normal_spots = fetch_available_free_spots()
             available_handicap_spots = fetch_available_handicap_spots()
+
             # Log the information
             logging.info("Total normal parking spots: %s", total_normal_spots)
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
@@ -191,12 +214,12 @@ def main():
             logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            # Draw polylines on the frame
-            #draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal spots
-            #draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap spots
+
+            cv2.imshow("Results", frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
     CAPTURE.release()
 
 if __name__ == "__main__":

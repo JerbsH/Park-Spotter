@@ -8,7 +8,7 @@ try:
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
-app = Flask(__name__)
+app = Flask(__name__,)
 CORS(app)
 
 @app.route('/')
