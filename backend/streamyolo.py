@@ -102,8 +102,6 @@ def boxes_overlap(box1, box2):
     """
     This function checks if two boxes overlap.
     """
-    if len(box1) != 4 or len(box2) != 4:
-        return False
 
     x1, y1, x2, y2 = box1
     x3, y3, x4, y4 = box2
@@ -132,17 +130,7 @@ def box_in_regions(box, normal_regions, handicap_regions):
     """
     Check if the centroid of a bounding box is within any of the specified regions.
     """
-    # Ensure that the bounding box has the expected format
-    if len(box) != 4:
-        return False
-
-    # Extract box coordinates
-    x1, y1, x2, y2 = box
-
-    # Calculate the centroid of the bounding box
-    box_centroid = (int((x1 + x2) / 2), int((y1 + y2) / 2))
-
-    # Check if the centroid is within any of the specified regions
+    box_centroid = (int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2))
     for region in normal_regions:
         if cv2.pointPolygonTest(region, box_centroid, False) >= 0:
             return True
@@ -181,14 +169,14 @@ def main():
                 for detection in result.boxes:
                     class_id = detection.cls.item()
                     conf = detection.conf.item()
-                    box = detection.xyxy.cpu().numpy()
-                    if len(box) == 4:
-                        if class_id in VEHICLE_CLASSES and conf >= 0.5:
-                            if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
-                                detected_boxes.append(tuple(box))
-                                if box_in_regions(box, HANDICAP_POINTS_NP, NORMAL_POINTS_NP):
+                    box = detection.xyxy[0].cpu().numpy()
+                    if class_id in VEHICLE_CLASSES and conf >= 0.25:
+                        if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
+                            if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                detected_boxes.append(box)
+                                if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
                                     total_normal_cars += 1
-                                elif box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                else:
                                     total_handicap_cars += 1
 
             # Calculate available spots
