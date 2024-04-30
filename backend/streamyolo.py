@@ -161,8 +161,8 @@ def main():
             detected_boxes = []
 
             # Draw polylines on the frame based on the points
-            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
-            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
+            #draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
+            #draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
 
             # Extract relevant information from the results
             for result in results:
@@ -199,8 +199,8 @@ def main():
             logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            reframe = cv2.resize(frame, (1280, 720))
-            results = MODEL(reframe, show=True)
+            #reframe = cv2.resize(frame, (1280, 720))
+            #results = MODEL(reframe, show=True)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
