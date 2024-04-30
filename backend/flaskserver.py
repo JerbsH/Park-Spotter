@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 try:
-    from database import fetch_available_free_spots, fetch_available_handicap_spots, save_token
+    from database import fetch_available_free_spots, fetch_available_handicap_spots, save_token, save_available_free_spots, save_available_handicap_spots
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
@@ -74,6 +74,23 @@ def get_free_handicap_spots():
     except Exception as e:
         logging.exception("Error fetching free handicap spots: %s", str(e))
         return jsonify({'error': str(e)}), 500
+
+@app.route('/save_spots', methods=['PUT'])
+def save_spots():
+    """
+    This function saves available parking spots and handicap parking spots to the database.
+    """
+
+    # Extract data from the request
+    data = request.get_json()
+    parking = data.get('parking')
+    acc_park = data.get('accPark')
+
+    # Call your function
+    save_available_free_spots(parking)
+    save_available_handicap_spots(acc_park)
+
+    return {'status': 'success'}, 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
