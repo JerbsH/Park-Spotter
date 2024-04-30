@@ -124,7 +124,7 @@ def boxes_overlap(box1, box2):
     # Calculate the overlap ratio
     overlap_ratio = intersection_area / min(area_box1, area_box2)
 
-    return overlap_ratio >= 0.8
+    return overlap_ratio >= 0.95
 
 def box_in_regions(box, normal_regions, handicap_regions):
     """
@@ -144,7 +144,7 @@ def main():
     """
     Main function for the program to run.
     """
-    frame_interval = 10
+    frame_interval = 20
     last_frame_time = time.time()
 
     while CAPTURE.isOpened():
@@ -161,8 +161,8 @@ def main():
             detected_boxes = []
 
             # Draw polylines on the frame based on the points
-            #draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
-            #draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
+            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
+            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
 
             # Extract relevant information from the results
             for result in results:
@@ -174,9 +174,9 @@ def main():
                         if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
                             if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
                                 detected_boxes.append(box)
-                                if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                if box_in_regions(box, NORMAL_POINTS_NP, []):
                                     total_normal_cars += 1
-                                else:
+                                elif box_in_regions(box, [], HANDICAP_POINTS_NP):
                                     total_handicap_cars += 1
 
             # Calculate available spots
@@ -199,8 +199,8 @@ def main():
             logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            #reframe = cv2.resize(frame, (1280, 720))
-            #results = MODEL(reframe, show=True)
+            reframe = cv2.resize(frame, (1920, 1080))
+            results = MODEL(reframe, show=True)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
