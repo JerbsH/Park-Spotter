@@ -5,7 +5,26 @@ function sendData() {
   sessionStorage.setItem("parking", parking);
   sessionStorage.setItem("accPark", accPark);
 
-  window.location.href='./static/draw.html';
+  // Make a POST request to the new endpoint
+  fetch('/save_spots', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parking: parking,
+      accPark: accPark,
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Success:', data);
+    window.location.href='./static/draw.html';
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
 }
 
 function showDraw() {
