@@ -144,11 +144,13 @@ def get_regions_of_interest(frame, points_np):
     """
     This function extracts the regions of interest from the frame based on the provided points.
     """
+    mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+    for points in points_np:
+        cv2.drawContours(mask, [points], -1, (255), thickness=cv2.FILLED)
+
     regions_of_interest = []
     scales_and_offsets = []
     for points in points_np:
-        mask = np.zeros(frame.shape[:2], dtype=np.uint8)
-        cv2.drawContours(mask, [points], -1, (255), thickness=cv2.FILLED)
         roi = cv2.bitwise_and(frame, frame, mask=mask)
         x, y, w, h = cv2.boundingRect(points)
         scale = 2*max(frame.shape[0] / h, frame.shape[1] / w)
@@ -162,7 +164,7 @@ def main():
     """
     Main function for the program to run.
     """
-    frame_interval = 10
+    frame_interval = 30
     last_frame_time = time.time()
 
     while CAPTURE.isOpened():
@@ -183,15 +185,19 @@ def main():
             # Draw polylines on the frame based on the points
             draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
             draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
-            # Process each region of interest
-            for i, (region, (scale, offset)) in enumerate(zip(normal_regions + handicap_regions, normal_scales_and_offsets + handicap_scales_and_offsets)):
-                results = MODEL(region)
+
+            # Process all regions of interest in a batch
+            all_regions = normal_regions + handicap_regions
+            all_scales_and_offsets = normal_scales_and_offsets + handicap_scales_and_offsets
+            all_results = MODEL(all_regions)
+
+            for i, (_, (scale, offset), results) in enumerate(zip(all_regions, all_scales_and_offsets, all_results)):
+
                 #normalwindow = f"Processed Region {i+1}"
                 #cv2.namedWindow(normalwindow, cv2.WINDOW_NORMAL)
 
                 # Display the processed region
-                #cv2.imshow(normalwindow, region)
-
+                #cv2.imshow(normalwindow, all_regions[i])
                 for result in results:
                     for detection in result.boxes:
                         class_id = detection.cls.item()
@@ -224,9 +230,6 @@ def main():
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            #reframe = cv2.resize(frame, (1920, 1080))
-            #results = MODEL(reframe, show=True)
-
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
