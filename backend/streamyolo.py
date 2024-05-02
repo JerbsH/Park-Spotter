@@ -162,7 +162,7 @@ def main():
     """
     Main function for the program to run.
     """
-    frame_interval = 30
+    frame_interval = 10
     last_frame_time = time.time()
 
     while CAPTURE.isOpened():
@@ -183,19 +183,15 @@ def main():
             # Draw polylines on the frame based on the points
             draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
             draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
-
-            # Process all regions of interest in a batch
-            all_regions = normal_regions + handicap_regions
-            all_scales_and_offsets = normal_scales_and_offsets + handicap_scales_and_offsets
-            all_results = MODEL(all_regions)
-
-            for i, (_, (scale, offset), results) in enumerate(zip(all_regions, all_scales_and_offsets, all_results)):
-
-                #normalwindow = f"Processed Region {i+1}"
-                #cv2.namedWindow(normalwindow, cv2.WINDOW_NORMAL)
+            # Process each region of interest
+            for i, (region, (scale, offset)) in enumerate(zip(normal_regions + handicap_regions, normal_scales_and_offsets + handicap_scales_and_offsets)):
+                results = MODEL(region)
+                normalwindow = f"Processed Region {i+1}"
+                cv2.namedWindow(normalwindow, cv2.WINDOW_NORMAL)
 
                 # Display the processed region
-                #cv2.imshow(normalwindow, all_regions[i])
+                cv2.imshow(normalwindow, region)
+
                 for result in results:
                     for detection in result.boxes:
                         class_id = detection.cls.item()
@@ -226,14 +222,20 @@ def main():
             # Log the information
             logging.info("Total normal parking spots: %s", total_normal_spots)
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
+            #logging.info("Total detected normal cars: %s", total_normal_cars)
+            #logging.info("Total detected handicap cars: %s", total_handicap_cars)
+            #logging.info("Free normal parking spots: %s", free_normal_spots)
+            #logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
+            #reframe = cv2.resize(frame, (1920, 1080))
+            #results = MODEL(reframe, show=True)
+
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()
     CAPTURE.release()
-
 if __name__ == "__main__":
     # Load resources in a separate thread
     resources_thread = threading.Thread(target=load_resources)
