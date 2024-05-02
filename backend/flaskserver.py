@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 try:
-    from database import fetch_available_free_spots, fetch_available_handicap_spots, save_token, save_total_free_spots, save_total_handicap_spots
+    from database import fetch_available_free_spots, fetch_available_handicap_spots, save_token, save_total_spots, save_total_handicap_spots
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
