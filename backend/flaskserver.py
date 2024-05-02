@@ -9,7 +9,7 @@ except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
 app = Flask(__name__ , template_folder='Website/')
-CORS(app)
+CORS(app, methods=['GET', 'POST', 'PUT'])
 
 @app.route('/')
 def index():
@@ -80,17 +80,25 @@ def save_spots():
     """
     This function saves available parking spots and handicap parking spots to the database.
     """
+    try:
+        # Extract data from the request
+        data = request.get_json()
+        parking = data.get('parking')
+        acc_park = data.get('accPark')
 
-    # Extract data from the request
-    data = request.get_json()
-    parking = data.get('parking')
-    acc_park = data.get('accPark')
+        # Log received data
+        logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
 
-    # Call your function
-    save_available_free_spots(parking)
-    save_available_handicap_spots(acc_park)
+        # Call your function
+        save_available_free_spots(parking)
+        save_available_handicap_spots(acc_park)
 
-    return {'status': 'success'}, 200
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        logging.exception("Error saving parking spots: %s", str(e))
+        return jsonify({'error': 'An error occurred while saving parking spots'}), 500
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)

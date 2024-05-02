@@ -11,6 +11,7 @@ import logging
 import pickle
 import threading
 import cv2
+import cv2.dnn as dnn
 import torch
 import numpy as np
 from ultralytics import YOLO
@@ -93,10 +94,11 @@ HANDICAP_CENTROID_TO_POINTS = dict(zip(HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_PO
 # test function to visually showing the if regions are drawn correctly
 def draw_polygons(image, points_np, color):
 
-    #Draw polylines on the image based on the provided points.
+    """Draw polylines on the image based on the provided points."""
 
     for points in points_np:
         cv2.polylines(image, [points], True, color, 2)
+
 
 def boxes_overlap(box1, box2):
     """
@@ -123,8 +125,7 @@ def boxes_overlap(box1, box2):
 
     # Calculate the overlap ratio
     overlap_ratio = intersection_area / min(area_box1, area_box2)
-
-    return overlap_ratio >= 0.95
+    return overlap_ratio >= 0.80
 
 def box_in_regions(box, normal_regions, handicap_regions):
     """
@@ -140,11 +141,30 @@ def box_in_regions(box, normal_regions, handicap_regions):
     return False
 
 
+def get_regions_of_interest(frame, points_np):
+    """
+    This function extracts the regions of interest from the frame based on the provided points.
+    """
+    regions_of_interest = []
+    scales_and_offsets = []
+    for points in points_np:
+        mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+        cv2.drawContours(mask, [points], -1, (255), thickness=cv2.FILLED)
+        roi = cv2.bitwise_and(frame, frame, mask=mask)
+        x, y, w, h = cv2.boundingRect(points)
+        scale = 2*max(frame.shape[0] / h, frame.shape[1] / w)
+        offset = (x, y)
+        roi = cv2.resize(roi[y:y+h, x:x+w], None, fx=scale, fy=scale)
+        regions_of_interest.append(roi)
+        scales_and_offsets.append((scale, offset))
+        logging.info("size of region of interest: %s", roi.size)
+    return regions_of_interest, scales_and_offsets
+
 def main():
     """
     Main function for the program to run.
     """
-    frame_interval = 20
+    frame_interval = 10
     last_frame_time = time.time()
 
     while CAPTURE.isOpened():
@@ -155,7 +175,10 @@ def main():
         if time.time() - last_frame_time >= frame_interval:
             last_frame_time = time.time()
 
-            results = MODEL(frame)
+            # Get the regions of interest
+            normal_regions, normal_scales_and_offsets = get_regions_of_interest(frame, NORMAL_POINTS_NP)
+            handicap_regions, handicap_scales_and_offsets = get_regions_of_interest(frame, HANDICAP_POINTS_NP)
+
             total_normal_cars = 0
             total_handicap_cars = 0
             detected_boxes = []
@@ -164,20 +187,31 @@ def main():
             draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
             draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
 
-            # Extract relevant information from the results
-            for result in results:
-                for detection in result.boxes:
-                    class_id = detection.cls.item()
-                    conf = detection.conf.item()
-                    box = detection.xyxy[0].cpu().numpy()
-                    if class_id in VEHICLE_CLASSES and conf >= 0.25:
-                        if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
-                            if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
-                                detected_boxes.append(box)
-                                if box_in_regions(box, NORMAL_POINTS_NP, []):
-                                    total_normal_cars += 1
-                                elif box_in_regions(box, [], HANDICAP_POINTS_NP):
-                                    total_handicap_cars += 1
+            # Process each region of interest
+            for i, (region, (scale, offset)) in enumerate(zip(normal_regions + handicap_regions, normal_scales_and_offsets + handicap_scales_and_offsets)):
+                results = MODEL(region)
+                normalwindow = f"Processed Region {i+1}"
+                cv2.namedWindow(normalwindow, cv2.WINDOW_NORMAL)
+
+                # Display the processed region
+                cv2.imshow(normalwindow, region)
+
+                for result in results:
+                    for detection in result.boxes:
+                        class_id = detection.cls.item()
+                        conf = detection.conf.item()
+                        box = detection.xyxy[0].cpu().numpy()
+                        box = box / scale + np.array([offset[0], offset[1], offset[0], offset[1]])  # Map the box back to the original frame
+                        logging.info("Detected a %s with confidence: %f", class_id, conf)
+                        if class_id in VEHICLE_CLASSES and conf >= 0.25:
+                            if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
+                                if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                    detected_boxes.append(box)
+                                    if box_in_regions(box, NORMAL_POINTS_NP, []):
+                                        total_normal_cars += 1
+                                    elif box_in_regions(box, [], HANDICAP_POINTS_NP):
+                                        total_handicap_cars += 1
+                                    logging.info("Detected a %s with confidence: %f", class_id, conf)
 
             # Calculate available spots
             total_normal_spots = fetch_total_spots()
@@ -199,12 +233,13 @@ def main():
             logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            reframe = cv2.resize(frame, (1920, 1080))
-            results = MODEL(reframe, show=True)
+            #reframe = cv2.resize(frame, (1920, 1080))
+            #results = MODEL(reframe, show=True)
+
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-
+    cv2.destroyAllWindows()
     CAPTURE.release()
 
 if __name__ == "__main__":

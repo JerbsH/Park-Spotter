@@ -10,10 +10,10 @@ import cv2
 import numpy as np
 
 # Load the YOLOv5 model
-MODEL = YOLO('yolov8x')
+MODEL = torch.hub.load('ultralytics/yolov5', 'yolov5x')
 
 # Load the saved image with the drawn regions
-IMAGE = Image.open("./backend/source/kouluparkki1.jpg")
+IMAGE = Image.open("./backend/source/testiparkki1.png")
 
 # Convert the image to a numpy array
 IMAGE_NP = np.array(IMAGE)

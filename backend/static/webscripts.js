@@ -5,7 +5,7 @@ function sendData() {
   sessionStorage.setItem("parking", parking);
   sessionStorage.setItem("accPark", accPark);
 
-  // Make a POST request to the new endpoint
+
   fetch('/save_spots', {
     method: 'PUT',
     headers: {
