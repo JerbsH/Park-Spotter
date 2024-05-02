@@ -213,7 +213,7 @@ def fetch_total_spots():
 def save_total_spots(total_spots):
     """Saves the total parking spots to the database."""
     if not isinstance(total_spots, int):
-        print(f"Invalid data type for total_handicap_spots: {type(total_spots)}")
+        print(f"Invalid data type for total_spots: {type(total_spots)}")
         return
 
     cnx = connect_to_db()

@@ -186,7 +186,8 @@ def main():
             # Draw polylines on the frame based on the points
             draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
             draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
-
+            total_normal_spots = fetch_total_spots()
+            total_handicap_spots = fetch_total_handicap_spots()
             # Process each region of interest
             for i, (region, (scale, offset)) in enumerate(zip(normal_regions + handicap_regions, normal_scales_and_offsets + handicap_scales_and_offsets)):
                 results = MODEL(region)
@@ -213,7 +214,6 @@ def main():
                                         total_handicap_cars += 1
                                     logging.info("Detected a %s with confidence: %f", class_id, conf)
 
-            # Calculate available spots
             total_normal_spots = fetch_total_spots()
             total_handicap_spots = fetch_total_handicap_spots()
             free_normal_spots = total_normal_spots - total_normal_cars

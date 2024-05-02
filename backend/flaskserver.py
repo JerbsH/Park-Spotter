@@ -81,10 +81,18 @@ def save_spots():
     This function saves available parking spots and handicap parking spots to the database.
     """
     try:
-        # Extract data from the request
+        # Extract data from the request and validate types
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Missing data in request'}), 400
+
         parking = data.get('parking')
+        if not isinstance(parking, int):
+            return jsonify({'error': 'Invalid data type for parking'}), 400
+
         acc_park = data.get('accPark')
+        if not isinstance(acc_park, int):
+            return jsonify({'error': 'Invalid data type for accPark'}), 400
 
         # Log received data
         logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
@@ -96,6 +104,7 @@ def save_spots():
     except Exception as e:
         logging.exception("Error saving parking spots: %s", str(e))
         return jsonify({'error': 'An error occurred while saving parking spots'}), 500
+
 
 
 
