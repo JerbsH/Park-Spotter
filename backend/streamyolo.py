@@ -156,7 +156,6 @@ def get_regions_of_interest(frame, points_np):
         roi = cv2.resize(roi[y:y+h, x:x+w], None, fx=scale, fy=scale)
         regions_of_interest.append(roi)
         scales_and_offsets.append((scale, offset))
-        logging.info("size of region of interest: %s", roi.size)
     return regions_of_interest, scales_and_offsets
 
 def main():
@@ -198,24 +197,22 @@ def main():
                         class_id = detection.cls.item()
                         conf = detection.conf.item()
                         box = detection.xyxy[0].cpu().numpy()
-                        box = box / scale + np.array([offset[0], offset[1], offset[0], offset[1]])  # Map the box back to the original frame
-                        logging.info("Detected a %s with confidence: %f", class_id, conf)
+                        box = box / scale + np.array([offset[0], offset[1], offset[0], offset[1]])
                         if class_id in VEHICLE_CLASSES and conf >= 0.25:
                             if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
-                                if box_in_regions(box, NORMAL_POINTS_NP, HANDICAP_POINTS_NP):
+                                in_normal_region = box_in_regions(box, NORMAL_POINTS_NP, [])
+                                in_handicap_region = box_in_regions(box, [], HANDICAP_POINTS_NP)
+                                if in_normal_region or in_handicap_region:
                                     detected_boxes.append(box)
-                                    if box_in_regions(box, NORMAL_POINTS_NP, []):
+                                    if in_normal_region:
                                         total_normal_cars += 1
-                                    elif box_in_regions(box, [], HANDICAP_POINTS_NP):
+                                    elif in_handicap_region:
                                         total_handicap_cars += 1
-                                    logging.info("Detected a %s with confidence: %f", class_id, conf)
 
             total_normal_spots = fetch_total_spots()
             total_handicap_spots = fetch_total_handicap_spots()
             free_normal_spots = total_normal_spots - total_normal_cars
             free_handicap_spots = total_handicap_spots - total_handicap_cars
-            logging.info("Calculated free normal spots: %s", free_normal_spots)
-            logging.info("Calculated free handicap spots: %s", free_handicap_spots)
             save_available_free_spots(free_normal_spots)
             save_available_handicap_spots(free_handicap_spots)
 
@@ -225,10 +222,10 @@ def main():
             # Log the information
             logging.info("Total normal parking spots: %s", total_normal_spots)
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
-            logging.info("Total detected normal cars: %s", total_normal_cars)
-            logging.info("Total detected handicap cars: %s", total_handicap_cars)
-            logging.info("Free normal parking spots: %s", free_normal_spots)
-            logging.info("Free handicap parking spots: %s", free_handicap_spots)
+            #logging.info("Total detected normal cars: %s", total_normal_cars)
+            #logging.info("Total detected handicap cars: %s", total_handicap_cars)
+            #logging.info("Free normal parking spots: %s", free_normal_spots)
+            #logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
             #reframe = cv2.resize(frame, (1920, 1080))
