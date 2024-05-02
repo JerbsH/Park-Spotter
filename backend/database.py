@@ -168,6 +168,10 @@ def fetch_total_handicap_spots():
 
 def save_total_handicap_spots(total_handicap_spots):
     """Saves the total handicap parking spots to the database."""
+    if not isinstance(total_handicap_spots, int):
+        print(f"Invalid data type for total_handicap_spots: {type(total_handicap_spots)}")
+        return
+
     cnx = connect_to_db()
     if cnx is None:
         return
@@ -177,6 +181,7 @@ def save_total_handicap_spots(total_handicap_spots):
         query = "UPDATE AVAILABLE_SPOTS SET TOTALHANDICAPSPOTS = %s WHERE id = %s"
         cursor.execute(query, (total_handicap_spots, 1))
         cnx.commit()
+        print(f"Updated total handicap spots to {total_handicap_spots}")
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
     finally:
@@ -207,6 +212,10 @@ def fetch_total_spots():
 
 def save_total_spots(total_spots):
     """Saves the total parking spots to the database."""
+    if not isinstance(total_spots, int):
+        print(f"Invalid data type for total_handicap_spots: {type(total_spots)}")
+        return
+
     cnx = connect_to_db()
     if cnx is None:
         return
@@ -216,6 +225,7 @@ def save_total_spots(total_spots):
         query = "UPDATE AVAILABLE_SPOTS SET TOTALSPOTS = %s WHERE id = %s"
         cursor.execute(query, (total_spots, 1))
         cnx.commit()
+        print(f"Updated total spots to {total_spots}")
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
     finally:

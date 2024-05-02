@@ -9,7 +9,7 @@ except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
 app = Flask(__name__ , template_folder='Website/')
-CORS(app, methods=['GET', 'POST', 'PUT'])
+CORS(app)
 
 @app.route('/')
 def index():
@@ -89,7 +89,6 @@ def save_spots():
         # Log received data
         logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
 
-        # Call your function
         save_available_free_spots(parking)
         save_available_handicap_spots(acc_park)
 
