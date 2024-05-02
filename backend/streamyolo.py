@@ -144,13 +144,11 @@ def get_regions_of_interest(frame, points_np):
     """
     This function extracts the regions of interest from the frame based on the provided points.
     """
-    mask = np.zeros(frame.shape[:2], dtype=np.uint8)
-    for points in points_np:
-        cv2.drawContours(mask, [points], -1, (255), thickness=cv2.FILLED)
-
     regions_of_interest = []
     scales_and_offsets = []
     for points in points_np:
+        mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+        cv2.drawContours(mask, [points], -1, (255), thickness=cv2.FILLED)
         roi = cv2.bitwise_and(frame, frame, mask=mask)
         x, y, w, h = cv2.boundingRect(points)
         scale = 2*max(frame.shape[0] / h, frame.shape[1] / w)
