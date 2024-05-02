@@ -97,7 +97,7 @@ def save_spots():
         # Log received data
         logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
 
-        save_total_free_spots(parking)
+        save_total_spots(parking)
         save_total_handicap_spots(acc_park)
 
         return jsonify({'status': 'success'}), 200
