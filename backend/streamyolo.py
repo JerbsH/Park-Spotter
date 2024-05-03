@@ -33,14 +33,17 @@ logging.basicConfig(level=logging.INFO)
 VEHICLE_CLASSES = {2, 3, 7}  # Car, motorcycle, truck
 MODEL = None
 CAPTURE = None
-NORMAL_POINTS_NP = []
-HANDICAP_POINTS_NP = []
+NORMAL_POINTS_NP = None
+HANDICAP_POINTS_NP = None
 
 def load_resources():
     """
     Load the model, video feed, and pickle file.
     """
     global MODEL, CAPTURE, NORMAL_POINTS_NP, HANDICAP_POINTS_NP
+    global NORMAL_ANNOTATED_CENTROIDS, NORMAL_CENTROID_TO_POINTS
+    global HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_CENTROID_TO_POINTS
+
     try:
         MODEL = YOLO("yolov8x.pt")
     except IOError as e:
@@ -56,21 +59,32 @@ def load_resources():
         logging.error("Error opening video file: %s", e)
         os._exit(1)
 
-    try:
-        with open("./backend/carSpots2.pkl", "rb") as file:
-            POINTS = pickle.load(file)
-            for point_group, is_handicap in POINTS:
-                if is_handicap:
-                    HANDICAP_POINTS_NP.append(np.array(point_group))
-                else:
-                    NORMAL_POINTS_NP.append(np.array(point_group))
-    except (FileNotFoundError, pickle.PickleError) as e:
-        logging.error("Error loading points: %s", e)
-        os._exit(1)
+    # Load points only if they haven't been loaded yet
+    if NORMAL_POINTS_NP is None or HANDICAP_POINTS_NP is None:
+        try:
+            with open("./backend/carSpots2.pkl", "rb") as file:
+                POINTS = pickle.load(file)
+                for point_group, is_handicap in POINTS:
+                    if is_handicap:
+                        if HANDICAP_POINTS_NP is None:
+                            HANDICAP_POINTS_NP = []
+                        HANDICAP_POINTS_NP.append(np.array(point_group))
+                    else:
+                        if NORMAL_POINTS_NP is None:
+                            NORMAL_POINTS_NP = []
+                        NORMAL_POINTS_NP.append(np.array(point_group))
+        except (FileNotFoundError, pickle.PickleError) as e:
+            logging.error("Error loading points: %s", e)
 
-    # Create numpy arrays and calculate centroids for normal and handicap spots
-    NORMAL_POINTS_NP[:] = [np.array(point_group) for point_group in NORMAL_POINTS_NP]
-    HANDICAP_POINTS_NP[:] = [np.array(point_group) for point_group in HANDICAP_POINTS_NP]
+    # Create numpy arrays and calculate centroids for normal and handicap spots (if loaded)
+    if NORMAL_POINTS_NP is not None:
+        NORMAL_POINTS_NP[:] = [np.array(point_group) for point_group in NORMAL_POINTS_NP]
+        NORMAL_ANNOTATED_CENTROIDS = calculate_centroids(NORMAL_POINTS_NP)
+        NORMAL_CENTROID_TO_POINTS = dict(zip(NORMAL_ANNOTATED_CENTROIDS, NORMAL_POINTS_NP))
+    if HANDICAP_POINTS_NP is not None:
+        HANDICAP_POINTS_NP[:] = [np.array(point_group) for point_group in HANDICAP_POINTS_NP]
+        HANDICAP_ANNOTATED_CENTROIDS = calculate_centroids(HANDICAP_POINTS_NP)
+        HANDICAP_CENTROID_TO_POINTS = dict(zip(HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_POINTS_NP))
 
 def calculate_centroids(points_np):
     """
@@ -213,6 +227,7 @@ def main():
             total_handicap_spots = fetch_total_handicap_spots()
             free_normal_spots = total_normal_spots - total_normal_cars
             free_handicap_spots = total_handicap_spots - total_handicap_cars
+
             save_available_free_spots(free_normal_spots)
             save_available_handicap_spots(free_handicap_spots)
 
@@ -222,20 +237,17 @@ def main():
             # Log the information
             logging.info("Total normal parking spots: %s", total_normal_spots)
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
-            #logging.info("Total detected normal cars: %s", total_normal_cars)
-            #logging.info("Total detected handicap cars: %s", total_handicap_cars)
-            #logging.info("Free normal parking spots: %s", free_normal_spots)
-            #logging.info("Free handicap parking spots: %s", free_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            #reframe = cv2.resize(frame, (1920, 1080))
-            #results = MODEL(reframe, show=True)
+            reframe = cv2.resize(frame, (1920, 1080))
+            results = MODEL(reframe, show=True)
 
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()
     CAPTURE.release()
+
 if __name__ == "__main__":
     # Load resources in a separate thread
     resources_thread = threading.Thread(target=load_resources)
