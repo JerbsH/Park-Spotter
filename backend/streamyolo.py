@@ -1,7 +1,8 @@
 """
 This module is used for streaming YOLO object detection model.
 It reads the video feed from the camera and detects vehicles in the feed.
-It then calculates the number of free normal and handicap parking spots based on the detected vehicles.
+It then calculates the number of free normal
+and handicap parking spots based on the detected vehicles.
 The number of free parking spots is saved to the database.
 """
 import sys
@@ -45,7 +46,7 @@ def load_resources():
     global HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_CENTROID_TO_POINTS
 
     try:
-        MODEL = YOLO("yolov8x.pt")
+        MODEL = YOLO("yolov8l.pt")
     except IOError as e:
         logging.error("Error loading model: %s", e)
         os._exit(1)
@@ -97,12 +98,6 @@ def calculate_centroids(points_np):
         )
         for point_group in points_np
     ]
-
-NORMAL_ANNOTATED_CENTROIDS = calculate_centroids(NORMAL_POINTS_NP)
-HANDICAP_ANNOTATED_CENTROIDS = calculate_centroids(HANDICAP_POINTS_NP)
-
-NORMAL_CENTROID_TO_POINTS = dict(zip(NORMAL_ANNOTATED_CENTROIDS, NORMAL_POINTS_NP))
-HANDICAP_CENTROID_TO_POINTS = dict(zip(HANDICAP_ANNOTATED_CENTROIDS, HANDICAP_POINTS_NP))
 
 # test function to visually showing the if regions are drawn correctly
 def draw_polygons(image, points_np, color):
@@ -165,7 +160,7 @@ def get_regions_of_interest(frame, points_np):
         cv2.drawContours(mask, [points], -1, (255), thickness=cv2.FILLED)
         roi = cv2.bitwise_and(frame, frame, mask=mask)
         x, y, w, h = cv2.boundingRect(points)
-        scale = 2*max(frame.shape[0] / h, frame.shape[1] / w)
+        scale = 2*max(frame.shape[0] // h, frame.shape[1] // w)
         offset = (x, y)
         roi = cv2.resize(roi[y:y+h, x:x+w], None, fx=scale, fy=scale)
         regions_of_interest.append(roi)
@@ -195,8 +190,8 @@ def main():
             detected_boxes = []
 
             # Draw polylines on the frame based on the points
-            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))  # Green color for normal regions
-            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))  # Red color for handicap regions
+            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))
+            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))
             # Process each region of interest
             for i, (region, (scale, offset)) in enumerate(zip(normal_regions + handicap_regions, normal_scales_and_offsets + handicap_scales_and_offsets)):
                 results = MODEL(region)
@@ -210,9 +205,10 @@ def main():
                     for detection in result.boxes:
                         class_id = detection.cls.item()
                         conf = detection.conf.item()
-                        box = detection.xyxy[0].cpu().numpy()
-                        box = box / scale + np.array([offset[0], offset[1], offset[0], offset[1]])
+                        logging.info(f"Confidence score for detected vehicle: {conf}")
                         if class_id in VEHICLE_CLASSES and conf >= 0.25:
+                            box = detection.xyxy[0].cpu().numpy()
+                            box = box / scale + np.array([offset[0], offset[1], offset[0], offset[1]])
                             if not any(boxes_overlap(box, other_box) for other_box in detected_boxes):
                                 in_normal_region = box_in_regions(box, NORMAL_POINTS_NP, [])
                                 in_handicap_region = box_in_regions(box, [], HANDICAP_POINTS_NP)
@@ -239,8 +235,8 @@ def main():
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)
             logging.info("Available handicap parking spots: %s", available_handicap_spots)
-            reframe = cv2.resize(frame, (1920, 1080))
-            results = MODEL(reframe, show=True)
+            #reframe = cv2.resize(frame, (1920, 1080))
+            #results = MODEL(reframe, show=True)
 
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
