@@ -4,7 +4,7 @@ import {
   handleUserLocation,
   handleUserLocationTask,
   geofence,
-} from './locationservice';
+} from '../frontend/locationservice.js';
 
 // Mock the schedulePushNotification function
 jest.mock('../frontend/notifications.js', () => ({
