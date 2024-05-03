@@ -139,13 +139,14 @@ def box_in_regions(box, normal_regions, handicap_regions):
     """
     Check if the centroid of a bounding box is within any of the specified regions.
     """
-    box_centroid = (int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2))
+    box_centroid_x = int((box[0] + box[2]) / 2)
+    box_centroid_y = int((box[1] + box[3]) / 2)
     for region in normal_regions:
-        if cv2.pointPolygonTest(region, box_centroid, False) >= 0:
-            return True
+      if cv2.pointPolygonTest(region, (box_centroid_x, box_centroid_y), False) >= 0:
+        return True
     for region in handicap_regions:
-        if cv2.pointPolygonTest(region, box_centroid, False) >= 0:
-            return True
+      if cv2.pointPolygonTest(region, (box_centroid_x, box_centroid_y), False) >= 0:
+        return True
     return False
 
 
@@ -205,7 +206,7 @@ def main():
                     for detection in result.boxes:
                         class_id = detection.cls.item()
                         conf = detection.conf.item()
-                        logging.info(f"Confidence score for detected vehicle: {conf}")
+                        #logging.info(f"Confidence score for detected vehicle: {conf}")
                         if class_id in VEHICLE_CLASSES and conf >= 0.25:
                             box = detection.xyxy[0].cpu().numpy()
                             box = box / scale + np.array([offset[0], offset[1], offset[0], offset[1]])
