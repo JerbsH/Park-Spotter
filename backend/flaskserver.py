@@ -1,10 +1,21 @@
+"""
+Flask server module
+"""
 import logging
+import os
 import subprocess
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_file
 from flask_cors import CORS
 
 try:
-    from database import fetch_available_free_spots, fetch_available_handicap_spots, save_token, save_total_spots, save_total_handicap_spots
+    from database import (
+        fetch_available_free_spots,
+        fetch_available_handicap_spots,
+        save_token,
+        save_total_spots,
+        save_total_handicap_spots,
+        save_image
+    )
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
@@ -25,12 +36,13 @@ def run_opencv():
     """
     try:
         # Execute the opencv.py script
-        subprocess.run(['python', 'opencv.py'], check=True)
+        subprocess.run(['python', 'backend/opencv.py'], check=True)
         return 'Success', 200
-    except Exception as e:
+    except subprocess.SubprocessError as e:
         return str(e), 500
 
 logging.basicConfig(level=logging.INFO)
+
 @app.route('/register', methods=['POST'])
 def register_device():
     """
@@ -43,7 +55,7 @@ def register_device():
             return jsonify({'error': 'Token is missing'}), 400
         save_token(token)
         return jsonify({'status': 'success'}), 200
-    except Exception as e:
+    except KeyError as e:
         logging.exception("Error registering device: %s", str(e))
         return jsonify({'error': str(e)}), 500
 
@@ -57,42 +69,48 @@ def get_free_spots():
         if not isinstance(free_spots, int) or free_spots < 0:
             raise ValueError("Invalid number of free spots")
         return jsonify({'free_spots': free_spots}), 200
-    except Exception as e:
+    except ValueError as e:
         logging.exception("Error fetching free spots: %s", str(e))
         return jsonify({'error': str(e)}), 500
 
 @app.route('/free_handicap_spots', methods=['GET'])
 def get_free_handicap_spots():
     """
-    This function fetches the number of available handicap parking spots and returns it as a JSON response.
+    Fetches the number of available handicap parking spots and returns it as a JSON response.
     """
     try:
         free_handicap_spots = fetch_available_handicap_spots()
         if not isinstance(free_handicap_spots, int) or free_handicap_spots < 0:
             raise ValueError("Invalid number of free handicap spots")
         return jsonify({'free_handicap_spots': free_handicap_spots}), 200
-    except Exception as e:
+    except ValueError as e:
         logging.exception("Error fetching free handicap spots: %s", str(e))
         return jsonify({'error': str(e)}), 500
 
 @app.route('/save_spots', methods=['PUT'])
 def save_spots():
     """
-    This function saves available parking spots and handicap parking spots to the database.
+    Save the total spots and total handicap spots along with the image.
     """
     try:
-        # Extract data from the request and validate types
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Missing data in request'}), 400
+        # Extract data from the request
+        parking = int(request.form.get('parking'))
+        acc_park = int(request.form.get('accPark'))
 
-        parking = data.get('parking')
-        if not isinstance(parking, int):
-            return jsonify({'error': 'Invalid data type for parking'}), 400
+        # Handle the image file in the request
+        image = request.files.get('image')
+        if not image:
+            return jsonify({'error': 'Missing image in request'}), 400
 
-        acc_park = data.get('accPark')
-        if not isinstance(acc_park, int):
-            return jsonify({'error': 'Invalid data type for accPark'}), 400
+        # Save the image file to a local directory
+        directory = '../source'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        image_path = os.path.join(directory, image.filename)
+        image.save(image_path)
+
+        # Save the image path to the database
+        save_image(image_path)
 
         # Log received data
         logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
@@ -101,12 +119,9 @@ def save_spots():
         save_total_handicap_spots(acc_park)
 
         return jsonify({'status': 'success'}), 200
-    except Exception as e:
+    except (ValueError, FileNotFoundError) as e:
         logging.exception("Error saving parking spots: %s", str(e))
         return jsonify({'error': 'An error occurred while saving parking spots'}), 500
-
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)

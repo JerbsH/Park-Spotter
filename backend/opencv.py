@@ -4,17 +4,24 @@ Module for drawing on an image using OpenCV and saving the drawn points.
 
 import pickle
 import sys
+import logging
 import cv2
 import numpy as np
+from database import fetch_image
 
+logging.basicConfig(level=logging.INFO)
 # Initialize the list of points and boolean indicating
 # whether drawing is being performed or not
 CURRENT_POINTS = []
 IS_DRAWING = False
 IS_HANDICAP = False
-# code
+
 # Load and resize the image
-IMAGE_PATH = "./backend/source/koulu1.png"
+IMAGE_PATH = fetch_image()
+
+if IMAGE_PATH == 0:
+    print("Error fetching image path from database")
+    sys.exit(1)
 
 try:
     IMAGE = cv2.imread(IMAGE_PATH)

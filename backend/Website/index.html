@@ -11,11 +11,12 @@
     <p>Welcome to the Park-Spotter setup page.</p>
     <p>Here you can add the picture of the parking area and add the parking areas to it.</p>
     <p>Here you will also specify how much free space is on the parking area.</p>
+    <p>Please ensure the image is of size 3840x2160.</p>
 
     <article>
       <section>
         <p>Picture of parking area:</p>
-        <input type="file" accept="image/*" id="imagePicker">
+        <input type="file" accept="image/*" id="imagePicker"onchange="checkImageSize(this)">
       </section>
       <section>
         <p>Total parking spots:</p>
