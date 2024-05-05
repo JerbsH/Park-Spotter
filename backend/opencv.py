@@ -16,7 +16,6 @@ CURRENT_POINTS = []
 IS_DRAWING = False
 IS_HANDICAP = False
 
-# Load and resize the image
 IMAGE_PATH = fetch_image()
 
 if IMAGE_PATH == 0:
@@ -94,7 +93,7 @@ for point in SAVED_POINTS:
         color = (255, 0, 0) if is_handicap else (0, 255, 0)
         cv2.polylines(IMAGE, [np.array(point_group)], True, color, 2)
 
-cv2.namedWindow("image", cv2.WINDOW_NORMAL)  # Make the window resizable
+cv2.namedWindow("image", cv2.WINDOW_NORMAL)
 cv2.setMouseCallback("image", click_and_draw)
 
 while True:

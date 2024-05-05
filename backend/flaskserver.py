@@ -3,8 +3,7 @@ Flask server module
 """
 import logging
 import os
-import subprocess
-from flask import Flask, jsonify, request, render_template, send_file
+from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 
 try:
@@ -14,11 +13,12 @@ try:
         save_token,
         save_total_spots,
         save_total_handicap_spots,
-        save_image
+        save_image,
     )
 except ImportError:
     print("Module 'database' not found. Please ensure it is in the same directory or installed.")
 
+logging.basicConfig(level=logging.INFO)
 app = Flask(__name__ , template_folder='Website/')
 CORS(app)
 
@@ -29,19 +29,6 @@ def index():
     """
     return render_template('index.html')
 
-@app.route('/run-opencv')
-def run_opencv():
-    """
-    Executes the opencv.py script.
-    """
-    try:
-        # Execute the opencv.py script
-        subprocess.run(['python', 'backend/opencv.py'], check=True)
-        return 'Success', 200
-    except subprocess.SubprocessError as e:
-        return str(e), 500
-
-logging.basicConfig(level=logging.INFO)
 
 @app.route('/register', methods=['POST'])
 def register_device():
@@ -93,16 +80,12 @@ def save_spots():
     Save the total spots and total handicap spots along with the image.
     """
     try:
-        # Extract data from the request
         parking = int(request.form.get('parking'))
         acc_park = int(request.form.get('accPark'))
-
-        # Handle the image file in the request
         image = request.files.get('image')
         if not image:
             return jsonify({'error': 'Missing image in request'}), 400
 
-        # Save the image file to a local directory
         directory = '../source'
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -111,8 +94,6 @@ def save_spots():
 
         # Save the image path to the database
         save_image(image_path)
-
-        # Log received data
         logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
 
         save_total_spots(parking)
