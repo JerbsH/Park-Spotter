@@ -24,23 +24,13 @@ function sendData() {
   });
 }
 
-function showDraw() {
+function showAmounts() {
   document.addEventListener('DOMContentLoaded', function () {
-    // Retrieve the values from session storage
+
     const parking = sessionStorage.getItem('parking');
     const accPark = sessionStorage.getItem('accPark');
-
-    // Display the values in the respective divs
-    document.getElementById('park').innerHTML = parking;
-    document.getElementById('acc').innerHTML = accPark;
-
-    fetch('/run-opencv')
-      .then((response) => {
-        console.log('opencv.py executed successfully');
-      })
-      .catch((error) => {
-        console.error('Error executing opencv.py:', error);
-      });
+    document.getElementById('park').innerHTML = "New regular parkingspots: " + parking;
+    document.getElementById('acc').innerHTML = "New accessible parkingspots: " + accPark;
   });
 }
 
@@ -61,4 +51,5 @@ function checkImageSize(input) {
 
   reader.readAsDataURL(file);
 }
+
 
