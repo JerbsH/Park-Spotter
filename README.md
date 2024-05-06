@@ -3,6 +3,10 @@ This repository contains code for parking area car detection application. This c
 
 The project uses a pre-trained machine learning model to search for cars in the image provided by the camera. The current model in use is <a href="https://docs.ultralytics.com/">YOLOv8 by Ultralytics</a>. In our project code the video feed doesn't get saved or uploaded to anywhere and is only processed from the live feed. Ultralytics might collect some usage data and you can read more about it <a href="https://docs.ultralytics.com/help/privacy/">here</a>.
 
+
+## Screenshots 
+<img width="200" height="350" src="./spots.png"> <img width="200" height="350" src="./map.jpg"> </br><img width="490" height="250" src="./notification.png"> <img width="200" height="350" src="./detection.png"> <img width="200" height="350" src="./setup.png"> <img width="200" height="350" src="./modified.png">
+
 ## How to get started with the project
 
 ### Download python
