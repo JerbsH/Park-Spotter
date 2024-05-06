@@ -10,7 +10,7 @@ let firstVisit = false;
 export const geofence = {
   latitude: 60.224185,
   longitude: 24.758153,
-  radius: 500, // 1km
+  radius: 1000, // 1km
 };
 
 // Check user's location, compare to geofence

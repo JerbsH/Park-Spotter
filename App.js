@@ -148,9 +148,7 @@ const App = () => {
   // Effect hook to handle received notifications
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        console.log(notification);
-      },
+      () => {},
     );
     return () => subscription.remove();
   }, []);
@@ -275,7 +273,7 @@ const App = () => {
         <Text style={styles.spots}>{spots}</Text>
         <Text style={styles.subtitle}>Available Spots</Text>
         <Text style={styles.spots}>{handicapSpots}</Text>
-        <Text style={styles.subtitle}>Available Handicap Spots</Text>
+        <Text style={styles.subtitle}>Available Accessible Spots</Text>
       </View>
     </View>
   );

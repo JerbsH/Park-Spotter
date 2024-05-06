@@ -8,7 +8,7 @@ export async function schedulePushNotification(spots, handicapSpots) {
     identifier: 'parkingSpotUpdate',
     content: {
       title: 'Karaportti 2 parkingspot update 🚗',
-      body: `There are: ${spots} parkingspots free and: ${handicapSpots} handicap spots free`,
+      body: `There are: ${spots} parkingspots free and: ${handicapSpots} accessible spots free`,
       data: {spots, handicapSpots},
     },
     trigger: null, // Triggering the notification immediately
@@ -37,7 +37,6 @@ export async function registerForPushNotificationsAsync() {
     try {
       const devicePushToken = await Notifications.getDevicePushTokenAsync();
       token = devicePushToken.data;
-      console.log('Device Push Token:', token);
     } catch (error) {
       console.error('Error fetching Device Push Token:', error);
     }
