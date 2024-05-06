@@ -5,7 +5,7 @@ The project uses a pre-trained machine learning model to search for cars in the 
 
 
 ## Screenshots 
-<img width="200" height="350" src="./spots.png"> <img width="200" height="350" src="./map.jpg"> </br><img width="490" height="250" src="./notification.png"> <img width="200" height="350" src="./detection.png"> <img width="200" height="350" src="./setup.png"> <img width="200" height="350" src="./modified.png">
+<img width="200" height="350" src="./spots.png"> <img width="200" height="350" src="./map.jpg"> <img width="500" height="250" src="./notification.png"> </br><img width="900" height="450" src="./detection.png"> </br><img width="900" height="400" src="./setup.png"> </br><img width="900" height="400" src="./modified.png">
 
 ## How to get started with the project
 
