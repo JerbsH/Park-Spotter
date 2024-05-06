@@ -80,7 +80,6 @@ class TestStreamYolo(unittest.TestCase):
         box2 = [0, 0, 2, 1]
         self.assertTrue(boxes_overlap(box1, box2))
 
-
     @patch('backend.streamyolo.cv2.VideoCapture')
     @patch('backend.streamyolo.pickle.load')
     @patch('backend.streamyolo.YOLO')
@@ -90,12 +89,15 @@ class TestStreamYolo(unittest.TestCase):
         """
         mock_yolo.return_value = 'dummy_model'
         mock_video_capture.return_value.isOpened.return_value = True
-        mock_pickle_load.return_value = [('dummy_point_group', 'dummy_is_handicap')]
+        mock_pickle_load.return_value = [([[0, 0], [10, 10]], False), ([[20, 20], [30, 30]], True)]
 
         streamyolo.load_resources()
 
         self.assertEqual(streamyolo.MODEL, 'dummy_model')
         self.assertTrue(streamyolo.CAPTURE.isOpened())
+        self.assertIsNotNone(streamyolo.NORMAL_POINTS_NP)
+        self.assertIsNotNone(streamyolo.HANDICAP_POINTS_NP)
+
 
     def test_calculate_centroids(self):
         """
@@ -122,6 +124,36 @@ class TestStreamYolo(unittest.TestCase):
         actual_result = [streamyolo.box_in_regions(dummy_box, region, dummy_handicap_regions) for region in dummy_regions]
 
         self.assertEqual(actual_result, expected_result)
+
+    @patch('backend.streamyolo.cv2.polylines')
+    def test_draw_polygons(self, mock_polylines):
+        """
+        This method tests the draw_polygons function.
+        """
+        dummy_image = np.zeros((10, 10, 3), dtype=np.uint8)
+        dummy_points = [np.array([[0, 0], [5, 5]])]
+
+        streamyolo.draw_polygons(dummy_image, dummy_points, color=(0, 255, 0))
+
+        mock_polylines.assert_called_once()
+
+@patch('backend.streamyolo.get_regions_of_interest')
+def test_get_regions_of_interest(self, mock_get_regions):
+    """
+    This method tests the get_regions_of_interest function.
+    """
+    dummy_image = np.zeros((10, 10, 3), dtype=np.uint8)
+    dummy_points = [np.array([[0, 0], [5, 5]])]
+    mock_get_regions.return_value = [...]
+
+    streamyolo.get_regions_of_interest(dummy_image, dummy_points)
+
+    mock_get_regions.assert_called_once_with(dummy_image, dummy_points)
+    calls = mock_get_regions.mock_calls
+    first_call = calls[0]
+
+    self.assertEqual(first_call[1][0].shape, dummy_image.shape)
+    self.assertTrue(np.all(first_call[1][0] == dummy_image))
 
 if __name__ == '__main__':
     unittest.main()

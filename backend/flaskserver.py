@@ -92,7 +92,6 @@ def save_spots():
         image_path = os.path.join(directory, image.filename)
         image.save(image_path)
 
-        # Save the image path to the database
         save_image(image_path)
         logging.info("Received data: parking=%s, acc_park=%s", parking, acc_park)
 

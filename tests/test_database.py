@@ -156,7 +156,6 @@ class TestDatabase(unittest.TestCase):
         mock_cnx = MagicMock()
         mock_cnx.cursor.return_value = mock_cursor
 
-        # Replace the actual database connection with the mock connection
         with unittest.mock.patch('backend.database.connect_to_db', return_value=mock_cnx):
             result = fetch_available_free_spots()
 

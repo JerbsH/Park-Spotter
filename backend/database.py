@@ -36,7 +36,6 @@ def fetch_token():
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
-            print(f"Fetched token:{result[0]}")  # Debugging print statement
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
@@ -78,7 +77,6 @@ def fetch_available_free_spots():
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
-            print(f"Fetched {result[0]} available spots")  # Debugging print statement
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
@@ -117,7 +115,6 @@ def fetch_available_handicap_spots():
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
-            print(f"Fetched {result[0]} available handicap spots")  # Debugging print statement
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
@@ -156,7 +153,6 @@ def fetch_total_handicap_spots():
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
-            print(f"Fetched total handicap spots:{result[0]}")  # Debugging print statement
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
@@ -200,7 +196,6 @@ def fetch_total_spots():
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
-            print(f"Fetched total spots:{result[0]}")  # Debugging print statement
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")
@@ -243,7 +238,6 @@ def fetch_image():
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
-            print(f"Fetched image path:{result[0]}")  # Debugging print statement
             return result[0]
     except mysql.connector.Error as err:
         print(f"Something went wrong: {err}")

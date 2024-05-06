@@ -1,114 +1,132 @@
 """
-Module for drawing on an image using OpenCV and saving the drawn points.
+This module handles image editing operations using OpenCV.
 """
 
 import pickle
 import sys
+import os
 import logging
 import cv2
 import numpy as np
-from database import fetch_image
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from backend.database import fetch_image
 
 logging.basicConfig(level=logging.INFO)
-# Initialize the list of points and boolean indicating
-# whether drawing is being performed or not
-CURRENT_POINTS = []
-IS_DRAWING = False
-IS_HANDICAP = False
 
-IMAGE_PATH = fetch_image()
+class ImageEditor:
+    """
+    This class provides functionalities to edit images using OpenCV.
+    """
 
-if IMAGE_PATH == 0:
-    print("Error fetching image path from database")
-    sys.exit(1)
+    def __init__(self):
+        self.current_points = []
+        self.is_drawing = False
+        self.is_handicap = False
+        self.saved_points = self.load_points()
+        self.image_path = fetch_image()
+        if self.image_path == 0:
+            print("Error fetching image path from database")
+            sys.exit(1)
+        self.image = self.load_image()
+        self.clone = self.image.copy() if self.image is not None else None
 
-try:
-    IMAGE = cv2.imread(IMAGE_PATH)
-    if IMAGE is None:
-        raise FileNotFoundError(f"Image not found at {IMAGE_PATH}")
-    print("Image size:", IMAGE.shape[1], "x", IMAGE.shape[0])  # Add this line
-
-except FileNotFoundError as e:
-    print(f"Error loading image: {e}")
-    sys.exit(1)
-except (ValueError, TypeError) as e:
-    print(f"Error resizing image: {e}")
-    sys.exit(1)
-
-CLONE = IMAGE.copy()
-
-# Use a context manager for file operations
-try:
-    with open("./backend/carSpots2.pkl", "rb") as file_in:
+    def load_image(self):
+        """
+        Load an image from the specified path.
+        """
         try:
-            SAVED_POINTS = pickle.load(file_in)
-        except EOFError:
-            SAVED_POINTS = []
-except FileNotFoundError:
-    SAVED_POINTS = []
+            image = cv2.imread(self.image_path)
+            if image is None:
+                raise FileNotFoundError(f"Image not found at {self.image_path}")
+            print("Image size:", image.shape[1], "x", image.shape[0])
+            return image
+        except FileNotFoundError as e:
+            print(f"Error loading image: {e}")
+            return None
+        except (ValueError, TypeError) as e:
+            print(f"Error resizing image: {e}")
+            return None
 
-def click_and_draw(event, x, y, flags, param):
-    """
-    Function to handle mouse events. Draws on the image on mouse drag and saves the points.
-    """
-    # grab references to the global variables
-    global CURRENT_POINTS, IS_DRAWING, IMAGE, SAVED_POINTS, IS_HANDICAP
+    def load_points(self):
+        """
+        Load points from a pickle file.
+        """
+        try:
+            with open("./backend/carSpots2.pkl", "rb") as file_in:
+                try:
+                    return pickle.load(file_in)
+                except EOFError:
+                    return []
+        except FileNotFoundError:
+            return []
 
-    if event == cv2.EVENT_LBUTTONDOWN:
-        IS_HANDICAP = False
-        color = (0, 255, 0)
-        CURRENT_POINTS = [(x, y)]
-        IS_DRAWING = True
-    elif event == cv2.EVENT_RBUTTONDOWN:
-        IS_HANDICAP = True
-        color = (255, 0, 0)
-        CURRENT_POINTS = [(x, y)]
-        IS_DRAWING = True
-    elif event == cv2.EVENT_MOUSEMOVE:
-        color = (255, 0, 0) if IS_HANDICAP else (0, 255, 0)
-        if IS_DRAWING:
-            cv2.circle(IMAGE, (x, y), 3, color, -1)
-            CURRENT_POINTS.append((x, y))
-    elif event == cv2.EVENT_LBUTTONUP or event == cv2.EVENT_RBUTTONUP:
-        color = (255, 0, 0) if IS_HANDICAP else (0, 255, 0)
-        CURRENT_POINTS.append((x, y))
-        IS_DRAWING = False
-        cv2.polylines(IMAGE, [np.array(CURRENT_POINTS)], True, color, 2)
-        cv2.imshow("image", IMAGE)
-        SAVED_POINTS.append((list(CURRENT_POINTS), IS_HANDICAP))
+    def click_and_draw(self, event, x, y, flags, param):
+        """
+        Handle mouse events to draw on the image.
+        """
+        if event == cv2.EVENT_LBUTTONDOWN:
+            self.is_handicap = False
+            color = (0, 255, 0)
+            self.current_points = [(x, y)]
+            self.is_drawing = True
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            self.is_handicap = True
+            color = (255, 0, 0)
+            self.current_points = [(x, y)]
+            self.is_drawing = True
+        elif event == cv2.EVENT_MOUSEMOVE:
+            color = (255, 0, 0) if self.is_handicap else (0, 255, 0)
+            if self.is_drawing:
+                cv2.circle(self.image, (x, y), 3, color, -1)
+                self.current_points.append((x, y))
+        elif event in (cv2.EVENT_LBUTTONUP, cv2.EVENT_RBUTTONUP):
+            color = (255, 0, 0) if self.is_handicap else (0, 255, 0)
+            self.current_points.append((x, y))
+            self.is_drawing = False
+            cv2.polylines(self.image, [np.array(self.current_points)], True, color, 2)
+            cv2.imshow("image", self.image)
+            self.saved_points.append((list(self.current_points), self.is_handicap))
 
-def save_points():
-    """
-    Function to save the drawn points to a file.
-    """
-    try:
-        with open("./backend/carSpots2.pkl", "wb") as file_out:
-            pickle.dump(SAVED_POINTS, file_out)
-    except pickle.PickleError as pickle_error:
-        print(f"Error saving points: {pickle_error}")
+    def save_points(self):
+        """
+        Save points to a pickle file.
+        """
+        try:
+            with open("./backend/carSpots2.pkl", "wb") as file_out:
+                pickle.dump(self.saved_points, file_out)
+        except pickle.PickleError as pickle_error:
+            print(f"Error saving points: {pickle_error}")
 
-for point in SAVED_POINTS:
-    if len(point) == 2:
-        point_group, is_handicap = point
-        color = (255, 0, 0) if is_handicap else (0, 255, 0)
-        cv2.polylines(IMAGE, [np.array(point_group)], True, color, 2)
+    def run(self):
+        """
+        Run the image editor.
+        """
+        for point in self.saved_points:
+            if len(point) == 2:
+                point_group, is_handicap = point
+                color = (255, 0, 0) if is_handicap else (0, 255, 0)
+                cv2.polylines(self.image, [np.array(point_group)], True, color, 2)
 
-cv2.namedWindow("image", cv2.WINDOW_NORMAL)
-cv2.setMouseCallback("image", click_and_draw)
+        cv2.namedWindow("image", cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback("image", self.click_and_draw)
 
-while True:
-    cv2.imshow("image", IMAGE)
-    key = cv2.waitKey(1) & 0xFF
+        while True:
+            cv2.imshow("image", self.image)
+            key = cv2.waitKey(1) & 0xFF
 
-    if key == ord("r"):
-        SAVED_POINTS.clear()
-        save_points()
-        IMAGE = CLONE.copy()
-        for point_group, is_handicap in SAVED_POINTS:
-            color = (255, 0, 0) if is_handicap else (0, 255, 0)
-            cv2.polylines(IMAGE, [np.array(point_group)], True, color, 2)
-    elif key == ord("c"):
-        save_points()
-        break
+            if key == ord("r"):
+                self.saved_points.clear()
+                self.save_points()
+                self.image = self.clone.copy()
+                for point_group, is_handicap in self.saved_points:
+                    color = (255, 0, 0) if is_handicap else (0, 255, 0)
+                    cv2.polylines(self.image, [np.array(point_group)], True, color, 2)
+            elif key == ord("c"):
+                self.save_points()
+                break
 
-cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    editor = ImageEditor()
+    editor.run()

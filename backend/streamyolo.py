@@ -12,7 +12,6 @@ import logging
 import pickle
 import threading
 import cv2
-import torch
 import numpy as np
 from ultralytics import YOLO
 from dotenv import load_dotenv
@@ -123,7 +122,7 @@ def boxes_overlap(box1, box2):
     y_bottom = min(y2, y4)
 
     if x_right < x_left or y_bottom < y_top:
-        return False  # No overlap
+        return False  # == No overlap
 
     intersection_area = (x_right - x_left) * (y_bottom - y_top)
 
@@ -172,7 +171,7 @@ def main():
     """
     Main function for the program to run.
     """
-    frame_interval = 10
+    frame_interval = 30
     last_frame_time = time.time()
 
     while CAPTURE.isOpened():
@@ -191,16 +190,16 @@ def main():
             detected_boxes = []
 
             # Draw polylines on the frame based on the points
-            draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))
-            draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))
+            #draw_polygons(frame, NORMAL_POINTS_NP, (0, 255, 0))
+            #draw_polygons(frame, HANDICAP_POINTS_NP, (255, 0, 0))
             # Process each region of interest
             for i, (region, (scale, offset)) in enumerate(zip(normal_regions + handicap_regions, normal_scales_and_offsets + handicap_scales_and_offsets)):
                 results = MODEL(region)
-                normalwindow = f"Processed Region {i+1}"
-                cv2.namedWindow(normalwindow, cv2.WINDOW_NORMAL)
+                #normalwindow = f"Processed Region {i+1}"
+                #cv2.namedWindow(normalwindow, cv2.WINDOW_NORMAL)
 
                 # Display the processed region
-                cv2.imshow(normalwindow, region)
+                #cv2.imshow(normalwindow, region)
 
                 for result in results:
                     for detection in result.boxes:
@@ -231,7 +230,6 @@ def main():
             available_normal_spots = fetch_available_free_spots()
             available_handicap_spots = fetch_available_handicap_spots()
 
-            # Log the information
             logging.info("Total normal parking spots: %s", total_normal_spots)
             logging.info("Total handicap parking spots: %s", total_handicap_spots)
             logging.info("Available normal parking spots: %s", available_normal_spots)

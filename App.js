@@ -17,17 +17,22 @@ import {
 } from './frontend/locationservice';
 
 initializeApp(firebaseConfig);
+
+// Main App component
 const App = () => {
+  // State variables declaration using hooks
   const [spots, setSpots] = useState(0);
   const [handicapSpots, setHandicapSpots] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [isInside, setIsInside] = useState(false);
 
+  // Effect hook to register push notification token on initial load
   useEffect(() => {
     const registerToken = async () => {
       const expoPushToken = await registerForPushNotificationsAsync();
 
+      // Registering token with server
       fetch(`${process.env.REACT_SERVER_URL}`, {
         method: 'POST',
         headers: {
@@ -42,27 +47,32 @@ const App = () => {
     registerToken();
   }, []);
 
+  // Effect hook to fetch parking spots and start location tracking on first visit
   useEffect(() => {
     const onFirstVisit = async () => {
       console.log('Trigger push notification');
       await fetchSpots();
     };
 
+    // Starting background location tracking
     startBackgroundLocationTracking(onFirstVisit, setIsInside, setUserLocation);
 
+    // Cleanup function to stop background location tracking
     return () => {
       stopBackgroundLocationTracking();
     };
   }, []);
 
+  // Function to fetch parking spots data
   const fetchSpots = async () => {
     let spots = 0;
     let handicapSpots = 0;
 
+    // Fetching regular parking spots data
     await fetch(`${process.env.REACT_PARKINGSPOTS_URL}`)
-      .then((response) => response.text()) // Get response text
+      .then((response) => response.text())
       .then((text) => {
-        return JSON.parse(text); // Parse the text as JSON
+        return JSON.parse(text);
       })
       .then((data) => {
         console.log('Data fetched successfully', data);
@@ -72,10 +82,11 @@ const App = () => {
         console.error('Error fetching data', error);
       });
 
+    // Fetching handicap parking spots data
     await fetch(`${process.env.REACT_HANDICAP_PARKINGSPOTS_URL}`)
-      .then((response) => response.text()) // Get response text
+      .then((response) => response.text())
       .then((text) => {
-        return JSON.parse(text); // Parse the text as JSON
+        return JSON.parse(text);
       })
       .then((data) => {
         console.log('Data fetched successfully', data);
@@ -85,28 +96,34 @@ const App = () => {
         console.error('Error fetching data', error);
       });
 
+    // Updating state variables
     setSpots(spots);
     setHandicapSpots(handicapSpots);
 
+    // Scheduling push notification if user is inside geofence
     if (isInside) {
       await schedulePushNotification(spots, handicapSpots);
     }
   };
 
+  // Effect hook to fetch parking spots data periodically and register background fetch task
   useEffect(() => {
     fetchSpots();
-    // Register the background fetch task on component mount
+
+    // Registering background fetch task
     BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 1, // 1 seconds
+      minimumInterval: 1,
     });
     console.log('Background fetch task registered');
-    // Fetch every 10 seconds
+
+    // Setting up periodic fetching of parking spots data
     const intervalId = setInterval(fetchSpots, 10000);
 
-    // Clear interval on component unmount
+    // Cleanup function to clear interval
     return () => clearInterval(intervalId);
   }, []);
 
+  // Effect hook to start location tracking and fetch spots on location change
   useEffect(() => {
     const onFirstVisit = () => {
       fetchSpots();
@@ -122,11 +139,13 @@ const App = () => {
       setUserLocation,
     );
 
+    // Cleanup function to stop background location tracking
     return () => {
       stopBackgroundLocationTracking();
     };
   }, []);
 
+  // Effect hook to handle received notifications
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
@@ -138,6 +157,7 @@ const App = () => {
 
   const BACKGROUND_FETCH_TASK = 'background-fetch';
 
+  // Defining background fetch task
   TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     const now = Date.now();
     console.log(
@@ -154,6 +174,7 @@ const App = () => {
     }
   });
 
+  // Rendering the UI components
   return (
     <View style={styles.container}>
       <View style={{margin: 40, width: 100, alignSelf: 'center'}}>
@@ -260,6 +281,7 @@ const App = () => {
   );
 };
 
+// Styles for the components
 const styles = StyleSheet.create({
   container: {
     flex: 1,
